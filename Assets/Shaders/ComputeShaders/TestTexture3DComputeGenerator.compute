@@ -1,0 +1,22 @@
+#pragma kernel CSMain
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 uvw = float3(id.xyz) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution + id.z * resolution * resolution];
+
+
+    pixel.color = float4(uvw, 1);
+
+
+    pixels[id.x + id.y * resolution + id.z * resolution * resolution] = pixel;
+}

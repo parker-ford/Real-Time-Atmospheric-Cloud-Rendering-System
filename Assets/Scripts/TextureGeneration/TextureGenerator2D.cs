@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public class TextureMaker2D : MonoBehaviour
+public class TextureGenerator2D : MonoBehaviour
 {
     public struct Pixel {
         public Color color;
@@ -11,6 +11,7 @@ public class TextureMaker2D : MonoBehaviour
     private Pixel[] pixels;
     public string textureName;
     public ComputeShader computeTextureMaker;
+    public ApplyImageEffectTexture2D applyImageEffectTexture2D;
     public int resolution = 256;
     public bool genMipMaps = true;
 
@@ -19,16 +20,17 @@ public class TextureMaker2D : MonoBehaviour
     public bool saveTexture = false;
 
 
-
     void Start()
     {
         GenerateTexture();
     }
 
     void GenerateTexture(){
+        Debug.Assert(computeTextureMaker != null, "Compute Shader not set");
         CreatePixelArray();
         FillPixelBuffer();
         PixelArrayToTexture();
+        applyImageEffectTexture2D.SetTexture(texture);
     }
 
     private void CreatePixelArray(){
@@ -49,6 +51,8 @@ public class TextureMaker2D : MonoBehaviour
 
     private void PixelArrayToTexture(){
         texture = new Texture2D(resolution, resolution, TextureFormat.RGBA32, genMipMaps);
+        texture.filterMode = FilterMode.Point;
+        
         for(int x = 0; x < resolution; x++){
             for(int y = 0; y < resolution; y++){
                 texture.SetPixel(x, y, pixels[x + y * resolution].color);
@@ -63,7 +67,7 @@ public class TextureMaker2D : MonoBehaviour
         System.IO.Directory.CreateDirectory(folderPath);
 
         AssetDatabase.CreateAsset(texture, "Assets/Textures/" + textureName + "/"  + textureName + "_" + dateTimeString + ".asset" );
-        Debug.Log("3D Texture created");
+        Debug.Log("2D Texture created");
     }
     void Update()
     {

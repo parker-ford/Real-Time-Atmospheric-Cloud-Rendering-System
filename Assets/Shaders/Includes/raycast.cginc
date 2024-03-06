@@ -7,15 +7,17 @@
 sampler2D _BlueNoiseTexture;
 int _RaycastBitMask;
 float _RayMarchSteps;
+float _RayMarchDistanceOffsetWeight;
 float _RayOffsetWeight;
 
 //Raycast Bitmask
 #define WHITE_NOISE_OFFSET 0x1
 #define NROOKS_OFFSET 0x2
 #define UNIFORM_OFFSET 0x4
+#define MARCH_OFFSET 0x8
 
 //Macros
-#define CHECK_RAYMARCH_BITMASK(bit) (((_RaycastBitMask) & (1 << (bit))) != 0)
+#define CHECK_RAYCAST_BITMASK(bit) (((_RaycastBitMask) & (bit)) != 0)
 
 //Struct Definitions
 struct Ray {
@@ -38,6 +40,10 @@ float4 sampleBlueNoise(float2 uv){
     float2 pixel = uv * float2(_ScreenParams.x / 256.0, _ScreenParams.y / 256.0) + 0.5;
     float4 blueNoiseSample = tex2D(_BlueNoiseTexture, pixel);
     return blueNoiseSample;
+}
+
+float updateMarchOffset(float offset, float step){
+    return frac(offset + (step) / (_RayMarchSteps));
 }
 
 float3 getCameraOriginInWorld(){
@@ -68,13 +74,13 @@ float3 getPixelRayInWorld(float2 uv){
 
     //Offset within pixel
     float2 offset = float2(0.0, 0.0);
-    if(CHECK_RAYMARCH_BITMASK(WHITE_NOISE_OFFSET)){
+    if(CHECK_RAYCAST_BITMASK(WHITE_NOISE_OFFSET)){
         offset += (whiteNoisePixelOffsets[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
     }
-    else if(CHECK_RAYMARCH_BITMASK(NROOKS_OFFSET)){
+    else if(CHECK_RAYCAST_BITMASK(NROOKS_OFFSET)){
         offset += (nrooksPixelOffset[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
     }
-    else if(CHECK_RAYMARCH_BITMASK(UNIFORM_OFFSET)){
+    else if(CHECK_RAYCAST_BITMASK(UNIFORM_OFFSET)){
         offset += (uniformPixelOffsets[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
     }
     offset *= _RayOffsetWeight;
@@ -129,8 +135,11 @@ SphereHit raySphereIntersect(Ray ray, Sphere sphere){
     return hit;
 }
 
-float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep){
+float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, float offset){
     float3 pos = ray.origin + ray.direction * (hit.enter + step * distPerStep);
+    if(CHECK_RAYCAST_BITMASK(MARCH_OFFSET)){
+        pos = pos + ray.direction * frac(((offset) * distPerStep * _RayMarchDistanceOffsetWeight));
+    }
     return pos;
 }
 

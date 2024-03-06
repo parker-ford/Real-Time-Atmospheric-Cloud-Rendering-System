@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class RaycastController : MonoBehaviour
 {
+    const int WHITE_NOISE_OFFSET = 0x1;
+    const int NROOKS_OFFSET = 0x2;
+    const int UNIFORM_OFFSET = 0x4;
+    const int MARCH_OFFSET = 0x8;
+
     public GameObject sphere;
     public Shader shader;
     public int rayMarchSteps = 5;
@@ -11,7 +16,10 @@ public class RaycastController : MonoBehaviour
     public float blendFactor = 0.0f;
     [Range(0.0f, 1.0f)]
     public float pixelOffsetWeight = 0.0f;
-    public float distanceOffsetWeight = 0.0f;
+    [Range(0.0f, 5.0f)]
+    public float marchDistanceOffsetWeight = 0.0f;
+    public bool useRayMarchOffset = false;
+    private int rayCastBitmask = 0;
     
     void Start()
     {
@@ -21,9 +29,19 @@ public class RaycastController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        rayCastBitmask = 0;
+        if (useRayMarchOffset)
+        {
+            rayCastBitmask |= MARCH_OFFSET;
+        }
+
+
         Shader.SetGlobalVector("_SphereCenter", sphere.transform.position);
         Shader.SetGlobalFloat("_SphereRadius", sphere.transform.localScale.y / 2.0f);
         Shader.SetGlobalFloat("_BlendFactor", blendFactor);
         Shader.SetGlobalFloat("_RayMarchSteps", rayMarchSteps);
+        Shader.SetGlobalInt("_RaycastBitMask", rayCastBitmask);
+        Shader.SetGlobalFloat("_PixelOffsetWeight", pixelOffsetWeight);
+        Shader.SetGlobalFloat("_RayMarchDistanceOffsetWeight", marchDistanceOffsetWeight);
     }
 }

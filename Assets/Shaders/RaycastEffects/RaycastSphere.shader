@@ -45,7 +45,9 @@ Shader "Parker/RaycastSphere"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                return sampleBlueNoise(i.uv);
+                float4 blueNoiseSample = sampleBlueNoise(i.uv);
+                float rayMarchOffset = blueNoiseSample.b;
+
                 float4 mainCol = tex2D(_MainTex, i.uv);
                 Ray ray = getRayFromUV(i.uv);
                 Sphere sphere = { _SphereCenter, _SphereRadius };
@@ -53,13 +55,28 @@ Shader "Parker/RaycastSphere"
                 float4 col = float4(0, 0, 0, 1);
                 if(hit.hit)
                 {
-                    float distPerStep = sphere.radius / (_RayMarchSteps - 1.0);
+                    float distPerStep = 1.0 / (_RayMarchSteps - 1.0);
                     float result = 0.0;
-                    for(int step = 0; step < _RayMarchSteps; step++){
-                        float3 pos = getMarchPosition(ray, hit, step, distPerStep);
+                    for(int stp = 0; stp < _RayMarchSteps; stp++, rayMarchOffset = updateMarchOffset(rayMarchOffset, stp)){
+                        float3 pos = getMarchPosition(ray, hit, stp, distPerStep, rayMarchOffset);
                         float dist = length(pos - sphere.center);
                         dist = remap_f(dist, 0.0, sphere.radius, 1.0, 0.25);
-                        result += floor(dist * 4.0 ) / 4.0;
+                        result += (step(0.0, dist) * 0.25);
+                        result += (step(0.25, dist) * 0.25);
+                        result += (step(0.5, dist) * 0.25);
+                        result += (step(0.75, dist) * 0.25);
+                        // if(dist < 0.25){
+                        //     result += 0.25;
+                        // }
+                        // else if(dist < 0.5){
+                        //     result += 0.5;
+                        // }
+                        // else if(dist < 0.75){
+                        //     result += 0.75;
+                        // }
+                        // else if(dist < 1.0){
+                        //     result += 1.00;
+                        // }
                     }
                     result /= _RayMarchSteps;
                     col = float4(result, 0, 0, 1.0);

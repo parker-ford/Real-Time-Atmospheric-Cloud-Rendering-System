@@ -45,6 +45,7 @@ Shader "Parker/RaycastSphere"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                return sampleBlueNoise(i.uv);
                 float4 mainCol = tex2D(_MainTex, i.uv);
                 Ray ray = getRayFromUV(i.uv);
                 Sphere sphere = { _SphereCenter, _SphereRadius };
@@ -52,7 +53,17 @@ Shader "Parker/RaycastSphere"
                 float4 col = float4(0, 0, 0, 1);
                 if(hit.hit)
                 {
-                    col = float4(1, 0, 0, 1);
+                    float distPerStep = sphere.radius / (_RayMarchSteps - 1.0);
+                    float result = 0.0;
+                    for(int step = 0; step < _RayMarchSteps; step++){
+                        float3 pos = getMarchPosition(ray, hit, step, distPerStep);
+                        float dist = length(pos - sphere.center);
+                        dist = remap_f(dist, 0.0, sphere.radius, 1.0, 0.25);
+                        result += floor(dist * 4.0 ) / 4.0;
+                    }
+                    result /= _RayMarchSteps;
+                    col = float4(result, 0, 0, 1.0);
+
                 }
 
                 return lerp(col, mainCol, _BlendFactor);

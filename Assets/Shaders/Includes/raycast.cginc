@@ -6,7 +6,7 @@
 //Raycast Parameters
 sampler2D _BlueNoiseTexture;
 int _RaycastBitMask;
-float _RaymarchSteps;
+float _RayMarchSteps;
 float _RayOffsetWeight;
 
 //Raycast Bitmask
@@ -112,11 +112,26 @@ SphereHit raySphereIntersect(Ray ray, Sphere sphere){
     float d = b * b - 4. * c;
 
     if(d >= 0.0){
-        hit.hit = 1;
-        hit.enter = (-b - sqrt(d)) * 0.5;
-        hit.exit = (-b + sqrt(d)) * 0.5;
+        float sqrtD = sqrt(d);
+        float t0 = (-b - sqrtD) * 0.5;
+        float t1 = (-b + sqrtD) * 0.5;
+        if(t0 >= 0.0){
+            hit.hit = 1;
+            hit.enter = t0;
+            hit.exit = t1;
+        }
+        else if (t1 >= 0.0){
+            hit.hit = 1;
+            hit.enter = t1;
+            hit.exit = t0;
+        }
     }
     return hit;
+}
+
+float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep){
+    float3 pos = ray.origin + ray.direction * (hit.enter + step * distPerStep);
+    return pos;
 }
 
 #endif

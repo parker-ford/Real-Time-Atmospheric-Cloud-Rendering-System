@@ -1,4 +1,4 @@
-Shader "Hidden/RaycastSphere"
+Shader "Parker/RaycastSphere"
 {
     Properties
     {
@@ -39,13 +39,24 @@ Shader "Hidden/RaycastSphere"
             }
 
             sampler2D _MainTex;
+            float _SphereRadius;
+            float3 _SphereCenter;
+            float _BlendFactor;
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv);
-                // just invert the colors
-                col.rgb = 1 - col.rgb;
-                return col;
+                float4 mainCol = tex2D(_MainTex, i.uv);
+                Ray ray = getRayFromUV(i.uv);
+                Sphere sphere = { _SphereCenter, _SphereRadius };
+                SphereHit hit = raySphereIntersect(ray, sphere);
+                float4 col = float4(0, 0, 0, 1);
+                if(hit.hit)
+                {
+                    col = float4(1, 0, 0, 1);
+                }
+
+                return lerp(col, mainCol, _BlendFactor);
+
             }
             ENDCG
         }

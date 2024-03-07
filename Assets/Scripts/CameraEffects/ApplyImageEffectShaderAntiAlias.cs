@@ -12,10 +12,11 @@ public class ApplyImageEffectShaderAntiAlias : MonoBehaviour
     private Material blurMaterial;
     RenderTexture[] buffers;
     RenderTexture antiAliasedBuffer;
-    private int maxSamples = 16;
+    [Range(1, 16)]
     public int numSamples = 1;
+    private int maxSamples = 16;
     private int lastSamples = 0;
-    private int frame;
+    private int frame = 0;
     public bool useBlur = true;
 
 
@@ -51,7 +52,7 @@ public class ApplyImageEffectShaderAntiAlias : MonoBehaviour
 
         Shader.SetGlobalInt("_Frame", frame);
         Shader.SetGlobalInt("_NumSuperSamples", numSamples);
-
+        // Shader.SetGlobalInt()
 
         if(material != null && antiAliasingMaterial != null && blurMaterial != null){
             //Before frame threshold
@@ -66,7 +67,7 @@ public class ApplyImageEffectShaderAntiAlias : MonoBehaviour
             else{
 
                 //Subract oldest frame
-                antiAliasingMaterial.SetInt("_Mode",0);
+                antiAliasingMaterial.SetInt("_Mode", 0);
                 antiAliasingMaterial.SetTexture("_FrameTex", buffers[frame % numSamples]);
                 RenderTexture temp = RenderTexture.GetTemporary(antiAliasedBuffer.width, antiAliasedBuffer.height, antiAliasedBuffer.depth, antiAliasedBuffer.format);
                 Graphics.Blit(antiAliasedBuffer, temp,  antiAliasingMaterial);

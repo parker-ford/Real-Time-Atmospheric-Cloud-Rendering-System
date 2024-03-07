@@ -8,7 +8,8 @@ sampler2D _BlueNoiseTexture;
 int _RaycastBitMask;
 float _RayMarchSteps;
 float _RayMarchDistanceOffsetWeight;
-float _RayOffsetWeight;
+float _PixelOffsetWeight;
+float _BlueNoiseOffsetWeight;
 
 //Raycast Bitmask
 #define WHITE_NOISE_OFFSET 0x1
@@ -67,23 +68,28 @@ float3 getCameraOriginInWorldScaled(){
     return camWorld;
 }
 
-float3 getPixelRayInWorld(float2 uv){
+float3 getPixelRayInWorld(float2 uv, float2 pixelOffset){
 
     //Move uv to center
     uv += float2((1.0 / _ScreenParams.x) * 0.5 , (1.0 / _ScreenParams.y) * 0.5);
 
     //Offset within pixel
-    float2 offset = float2(0.0, 0.0);
+    pixelOffset = pixelOffset * (1.0 / _ScreenParams.xy) * _BlueNoiseOffsetWeight;
+
+    //Offset from frame
+    float2 frameOffset = float2(0.0, 0.0);
     if(CHECK_RAYCAST_BITMASK(WHITE_NOISE_OFFSET)){
-        offset += (whiteNoisePixelOffsets[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
+        frameOffset = (whiteNoisePixelOffsets[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
     }
     else if(CHECK_RAYCAST_BITMASK(NROOKS_OFFSET)){
-        offset += (nrooksPixelOffset[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
+        frameOffset = (nrooksPixelOffset[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
     }
     else if(CHECK_RAYCAST_BITMASK(UNIFORM_OFFSET)){
-        offset += (uniformPixelOffsets[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
+        frameOffset = (uniformPixelOffsets[_NumSuperSamples - 1][_Frame % _NumSuperSamples] - 0.5) * float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
     }
-    offset *= _RayOffsetWeight;
+    frameOffset *= _PixelOffsetWeight;
+
+    float2 offset = pixelOffset + frameOffset;
     uv += offset;
 
     //Convert to screen space uv (-1 - 1)
@@ -103,10 +109,10 @@ float3 getPixelRayInWorld(float2 uv){
     return rayWorld;
 }
 
-Ray getRayFromUV(float2 uv){
+Ray getRayFromUV(float2 uv, float2 pixelOffset){
     Ray ray;
     ray.origin = getCameraOriginInWorld();
-    ray.direction = getPixelRayInWorld(uv);
+    ray.direction = getPixelRayInWorld(uv, pixelOffset);
     return ray;
 }
 
@@ -137,8 +143,15 @@ SphereHit raySphereIntersect(Ray ray, Sphere sphere){
 
 float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, float offset){
     float3 pos = ray.origin + ray.direction * (hit.enter + step * distPerStep);
+    float distOffset = 0.0;
     if(CHECK_RAYCAST_BITMASK(MARCH_OFFSET)){
-        pos = pos + ray.direction * frac(((offset) * distPerStep * _RayMarchDistanceOffsetWeight));
+        distOffset += offset * _RayMarchDistanceOffsetWeight;
+        distOffset += (float)(_Frame % _NumSuperSamples) / (float)_NumSuperSamples;
+        distOffset = frac(distOffset) * distPerStep * _RayMarchDistanceOffsetWeight;
+        pos = pos + ray.direction * distOffset;
+        // pos = pos + ray.direction * frac()
+        // pos = pos + ray.direction 
+        //pos = pos + ray.direction * frac(((offset) * _RayMarchDistanceOffsetWeight)) * distPerStep;
     }
     return pos;
 }

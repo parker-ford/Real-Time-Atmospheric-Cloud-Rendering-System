@@ -39,52 +39,85 @@ Shader "Parker/RaycastSphere"
             }
 
             sampler2D _MainTex;
+            sampler2D _TestTex;
             float _SphereRadius;
             float3 _SphereCenter;
+            float3 _SphereCenter2;
             float _BlendFactor;
+            float4 _Color;
 
-            fixed4 frag (v2f i) : SV_Target
-            {
+            float4 intersectBoundarySphere(v2f i){
                 float4 blueNoiseSample = sampleBlueNoise(i.uv);
                 float rayMarchOffset = blueNoiseSample.b;
+                float2 pixelOffset = blueNoiseSample.rg - 0.5;
 
                 float4 mainCol = tex2D(_MainTex, i.uv);
-                Ray ray = getRayFromUV(i.uv);
+                Ray ray = getRayFromUV(i.uv, pixelOffset);
                 Sphere sphere = { _SphereCenter, _SphereRadius };
                 SphereHit hit = raySphereIntersect(ray, sphere);
-                float4 col = float4(0, 0, 0, 1);
+                float4 color = float4(0, 0, 0, 1);
                 if(hit.hit)
                 {
                     float distPerStep = 1.0 / (_RayMarchSteps - 1.0);
-                    float result = 0.0;
-                    for(int stp = 0; stp < _RayMarchSteps; stp++, rayMarchOffset = updateMarchOffset(rayMarchOffset, stp)){
+                    for(int stp = 0; stp < _RayMarchSteps; stp++){
                         float3 pos = getMarchPosition(ray, hit, stp, distPerStep, rayMarchOffset);
-                        float dist = length(pos - sphere.center);
-                        dist = remap_f(dist, 0.0, sphere.radius, 1.0, 0.25);
-                        result += (step(0.0, dist) * 0.25);
-                        result += (step(0.25, dist) * 0.25);
-                        result += (step(0.5, dist) * 0.25);
-                        result += (step(0.75, dist) * 0.25);
-                        // if(dist < 0.25){
-                        //     result += 0.25;
-                        // }
-                        // else if(dist < 0.5){
-                        //     result += 0.5;
-                        // }
-                        // else if(dist < 0.75){
-                        //     result += 0.75;
-                        // }
-                        // else if(dist < 1.0){
-                        //     result += 1.00;
-                        // }
-                    }
-                    result /= _RayMarchSteps;
-                    col = float4(result, 0, 0, 1.0);
+                        float distToCenter = length(_SphereCenter - pos);
+                        if(distToCenter < _SphereRadius * 0.2){
+                            color += float4(1, 0, 0, 1);
+                        }
+                        else if(distToCenter < _SphereRadius * 0.4){
+                            color += float4(0, 1, 0, 1);
+                        }
+                        else if(distToCenter < _SphereRadius * 0.6){
+                            color += float4(0, 0, 1, 1);
+                        }
+                        else if(distToCenter < _SphereRadius * 0.8){
+                            color += float4(1, 0, 1, 1);
+                        }
+                        else{
+                            color += float4(0, 1, 1, 1);
+                        }
 
+                    }
+                    color /= _RayMarchSteps;
+                    return color;
                 }
 
-                return lerp(col, mainCol, _BlendFactor);
+                // return lerp(mainCol, _Color, result);
+                return float4(0, 0, 0, 0);
+            }
 
+            float4 intersectTextureSphere(v2f i){
+                float4 blueNoiseSample = sampleBlueNoise(i.uv);
+                float rayMarchOffset = blueNoiseSample.b;
+                float2 pixelOffset = blueNoiseSample.rg - 0.5;
+
+                float4 mainCol = tex2D(_MainTex, i.uv);
+                Ray ray = getRayFromUV(i.uv, pixelOffset);
+                Sphere sphere = { _SphereCenter2, _SphereRadius };
+                SphereHit hit = raySphereIntersect(ray, sphere);
+                float4 col = float4(0, 0, 0, 1);
+                float result = 0.0;
+                if(hit.hit)
+                {           
+                    float3 p = ray.origin + hit.enter * ray.direction;
+                    float3 n = (p - _SphereCenter2);
+                    float2 samplePos = remap_f2(n.xy, -_SphereRadius, _SphereRadius, 0, 1);
+                    return tex2D(_TestTex, samplePos);
+                }
+
+
+                return float4(0, 0, 0, 0);
+
+            }
+
+            fixed4 frag (v2f i) : SV_Target
+            {
+
+                float4 mainCol = tex2D(_MainTex, i.uv);
+                float4 col = intersectBoundarySphere(i) + intersectTextureSphere(i);
+                return lerp(mainCol, col, col.a);
+                // return intersectBoundarySphere(i) + intersectTextureSphere(i);
             }
             ENDCG
         }

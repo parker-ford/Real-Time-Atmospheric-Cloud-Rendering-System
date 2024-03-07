@@ -38,7 +38,7 @@ Shader "Parker/GaussianBlur"
             }
 
             sampler2D _MainTex;
-            int _Mode;
+            int _BlurMode;
 
             float4 blur3x3(v2f i){
                 float weights3x3[9] = { 1.0/16, 2.0/16, 1.0/16,
@@ -78,7 +78,7 @@ Shader "Parker/GaussianBlur"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                if(_Mode == 0){
+                if(_BlurMode == 0){
                     return blur3x3(i);
                 } else {
                     return blur5x5(i);

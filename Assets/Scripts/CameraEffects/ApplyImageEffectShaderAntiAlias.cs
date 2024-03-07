@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class ApplyImageEffectShaderAntiAlias : MonoBehaviour
 {
+    public enum BlurMode {
+        Gaussian3x3 = 0,
+        Gaussian5x5 = 1,
+    }
+
     public Shader shader;
     public Shader antiAliasingShader;
     public Shader blurShader; 
@@ -12,12 +17,17 @@ public class ApplyImageEffectShaderAntiAlias : MonoBehaviour
     private Material blurMaterial;
     RenderTexture[] buffers;
     RenderTexture antiAliasedBuffer;
+    
+    [Header("Anti Aliasing Settings")]
     [Range(1, 16)]
     public int numSamples = 1;
     private int maxSamples = 16;
     private int lastSamples = 0;
     private int frame = 0;
+
+    [Header("Blur Settings")]
     public bool useBlur = true;
+    public BlurMode blurMode = BlurMode.Gaussian3x3;
 
 
     void Start()
@@ -52,6 +62,7 @@ public class ApplyImageEffectShaderAntiAlias : MonoBehaviour
 
         Shader.SetGlobalInt("_Frame", frame);
         Shader.SetGlobalInt("_NumSuperSamples", numSamples);
+        blurMaterial.SetInt("_BlurMode", (int)blurMode);
         // Shader.SetGlobalInt()
 
         if(material != null && antiAliasingMaterial != null && blurMaterial != null){

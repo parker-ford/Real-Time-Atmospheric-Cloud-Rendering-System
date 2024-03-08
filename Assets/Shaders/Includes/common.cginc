@@ -11,6 +11,9 @@ int _NumSuperSamples;
 float _CameraFOV;
 float _CameraAspect;
 
+//Macros
+#define CHECK_BIT(bitmask, bit) (((bitmask) & (bit)) != 0)
+
 //Pixel Super Sample Offsets
 static const float2 uniformPixelOffsets[16][16] = {
     {float2(0.25, 0.25), float2(0.25, 0.75),float2(0.75, 0.25),float2(0.75, 0.75), float2(0,0), float2(0,0), float2(0,0), float2(0,0), float2(0,0),  float2(0,0), float2(0,0), float2(0,0), float2(0,0), float2(0,0), float2(0,0), float2(0,0)},

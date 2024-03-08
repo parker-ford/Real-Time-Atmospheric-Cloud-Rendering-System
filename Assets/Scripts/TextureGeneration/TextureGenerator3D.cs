@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Diagnostics;
 
 public class TextureGenerator3D : MonoBehaviour
 {
@@ -26,11 +27,32 @@ public class TextureGenerator3D : MonoBehaviour
     }
 
     void GenerateTexture(){
-        Debug.Assert(computeTextureMaker != null, "Compute Shader not set");
+        Stopwatch sw = new Stopwatch();
+
+        UnityEngine.Debug.Assert(computeTextureMaker != null, "Compute Shader not set");
+
+        sw.Start();
         CreatePixelArray();
+        sw.Stop();
+        UnityEngine.Debug.Log("CreatePixelArray: " + sw.ElapsedMilliseconds + "ms");
+
+        sw.Reset();
+        sw.Start();
         FillPixelBuffer();
+        sw.Stop();
+        UnityEngine.Debug.Log("FillPixelBuffer: " + sw.ElapsedMilliseconds + "ms");
+
+        sw.Reset();
+        sw.Start();
         PixelArrayToTexture();
+        sw.Stop();
+        UnityEngine.Debug.Log("PixelArrayToTexture: " + sw.ElapsedMilliseconds + "ms");
+
+        sw.Reset();
+        sw.Start();
         applyImageEffectTexture3D.SetTexture(texture);
+        sw.Stop();
+        UnityEngine.Debug.Log("SetTexture: " + sw.ElapsedMilliseconds + "ms");
     }
 
     private void CreatePixelArray(){
@@ -53,14 +75,19 @@ public class TextureGenerator3D : MonoBehaviour
         texture = new Texture3D(resolution, resolution, resolution, TextureFormat.RGBA32, genMipMaps);
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
+
+        Color[] colorArray = new Color[resolution * resolution * resolution];
         
         for(int x = 0; x < resolution; x++){
             for(int y = 0; y < resolution; y++){
                 for(int z = 0; z < resolution; z++){
-                    texture.SetPixel(x,y,z, pixels[x + y * resolution + z * resolution * resolution].color);
+                    // texture.SetPixel(x,y,z, pixels[x + y * resolution + z * resolution * resolution].color);
+                    colorArray[x + y * resolution + z * resolution * resolution] = pixels[x + y * resolution + z * resolution * resolution].color;
                 }
             }
         }
+        
+        texture.SetPixels(colorArray);
         texture.Apply();
     }
 
@@ -70,7 +97,7 @@ public class TextureGenerator3D : MonoBehaviour
         System.IO.Directory.CreateDirectory(folderPath);
 
         AssetDatabase.CreateAsset(texture, "Assets/Textures/" + textureName + "/"  + textureName + "_" + dateTimeString + ".asset" );
-        Debug.Log("2D Texture created");
+        UnityEngine.Debug.Log("2D Texture created");
     }
     void Update()
     {

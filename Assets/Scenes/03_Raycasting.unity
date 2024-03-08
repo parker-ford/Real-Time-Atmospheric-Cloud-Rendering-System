@@ -246,12 +246,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: c83af114972f0c144bfff9518202a3b6, type: 3}
-  rayMarchSteps: 5
+  pixelOffsetType: 1
   pixelOffsetWeight: 1
   blueNosieOffsetWeight: 0
+  rayMarchSteps: 5
   marchDistanceOffsetWeight: 1
   useRayMarchOffset: 1
-  pixelOffsetType: 1
 --- !u!114 &95206490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -269,6 +269,7 @@ MonoBehaviour:
   blurShader: {fileID: 4800000, guid: 1a65f2f6aa4a4074fbd4169c847f76fb, type: 3}
   numSamples: 1
   useBlur: 0
+  blurMode: 0
 --- !u!1 &502979367
 GameObject:
   m_ObjectHideFlags: 0

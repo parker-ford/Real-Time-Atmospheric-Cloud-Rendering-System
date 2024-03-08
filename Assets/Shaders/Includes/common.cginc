@@ -94,4 +94,46 @@ float tan_d(float deg){
     return tan(rad);
 }
 
+uint pcgHash_ui(uint state){
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+float2 modulo(float2 divident, float2 divisor){
+    float2 positiveDivident = divident % divisor + divisor;
+    return positiveDivident % divisor;
+}
+
+float3 modulo(float3 divident, float3 divisor){
+    float3 positiveDivident = divident % divisor + divisor;
+    return positiveDivident % divisor;
+}
+
+float fract(float input){
+    return input - floor(input);
+}
+
+float normalize_ui(uint input){
+    return float(input) / 4294967295.0;
+}
+
+
+float2 random_2D(uint i){
+    uint r1 = pcgHash_ui(i);
+    uint r2 = pcgHash_ui(r1);
+    uint r3 = pcgHash_ui(r2);
+
+    return float2(normalize_ui(r3), normalize_ui(r2));
+}
+
+float3 random_3D(uint i){
+    uint r1 = pcgHash_ui(i);
+    uint r2 = pcgHash_ui(r1);
+    uint r3 = pcgHash_ui(r2);
+    uint r4 = pcgHash_ui(r3);
+
+    return float3(normalize_ui(r4), normalize_ui(r3), normalize_ui(r2));
+}
+
+
 #endif

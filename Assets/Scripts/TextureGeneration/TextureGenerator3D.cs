@@ -97,7 +97,7 @@ public class TextureGenerator3D : MonoBehaviour
         System.IO.Directory.CreateDirectory(folderPath);
 
         AssetDatabase.CreateAsset(texture, "Assets/Textures/" + textureName + "/"  + textureName + "_" + dateTimeString + ".asset" );
-        UnityEngine.Debug.Log("2D Texture created");
+        UnityEngine.Debug.Log("3D Texture created");
     }
     void Update()
     {

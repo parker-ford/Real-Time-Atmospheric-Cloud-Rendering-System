@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9d06c59663368a4d8421345d63c8029, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  channel: 4
   slice: 0
 --- !u!1 &1099298200
 GameObject:
@@ -259,7 +260,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textureName: Test3D
-  computeTextureMaker: {fileID: 7200000, guid: 8f5cb7fb3490db84eb159cfeddc17250, type: 3}
+  computeTextureMaker: {fileID: 7200000, guid: 20ee4a0290af3494cadb334fce9c8af6, type: 3}
   applyImageEffectTexture3D: {fileID: 320551159}
   resolution: 256
   genMipMaps: 1

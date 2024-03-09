@@ -116,6 +116,18 @@ Ray getRayFromUV(float2 uv, float2 pixelOffset){
     return ray;
 }
 
+Ray getRayFromUV(float2 uv, float2 pixelOffset, uint scaled){
+    Ray ray;
+    if(scaled == 1){
+        ray.origin = getCameraOriginInWorldScaled();
+    }
+    else{
+        ray.origin = getCameraOriginInWorld();
+    }
+    ray.direction = getPixelRayInWorld(uv, pixelOffset);
+    return ray;
+}
+
 SphereHit raySphereIntersect(Ray ray, Sphere sphere){
     SphereHit hit = {0, 0.0, 0.0};
     float3 oc = ray.origin - sphere.center;
@@ -149,9 +161,6 @@ float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, f
         distOffset += (float)(_Frame % _NumSuperSamples) / (float)_NumSuperSamples;
         distOffset = frac(distOffset) * distPerStep * _RayMarchDistanceOffsetWeight;
         pos = pos + ray.direction * distOffset;
-        // pos = pos + ray.direction * frac()
-        // pos = pos + ray.direction 
-        //pos = pos + ray.direction * frac(((offset) * _RayMarchDistanceOffsetWeight)) * distPerStep;
     }
     return pos;
 }

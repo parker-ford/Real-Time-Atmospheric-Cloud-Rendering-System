@@ -77,7 +77,7 @@ Shader "Parker/RaycastSphere"
                         else{
                             color += float4(0, 1, 1, 1);
                         }
-
+                        // rayMarchOffset = updateMarchOffset(rayMarchOffset, stp);
                     }
                     color /= _RayMarchSteps;
                     return color;
@@ -113,11 +113,9 @@ Shader "Parker/RaycastSphere"
 
             fixed4 frag (v2f i) : SV_Target
             {
-
                 float4 mainCol = tex2D(_MainTex, i.uv);
                 float4 col = intersectBoundarySphere(i) + intersectTextureSphere(i);
                 return lerp(mainCol, col, col.a);
-                // return intersectBoundarySphere(i) + intersectTextureSphere(i);
             }
             ENDCG
         }

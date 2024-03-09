@@ -74,7 +74,7 @@ public class TextureGenerator3D : MonoBehaviour
     private void PixelArrayToTexture(){
         texture = new Texture3D(resolution, resolution, resolution, TextureFormat.RGBA32, genMipMaps);
         texture.filterMode = FilterMode.Point;
-        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.wrapMode = TextureWrapMode.Repeat;
 
         Color[] colorArray = new Color[resolution * resolution * resolution];
         

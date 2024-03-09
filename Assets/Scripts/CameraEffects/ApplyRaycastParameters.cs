@@ -26,10 +26,10 @@ public class ApplyRaycastParameters : MonoBehaviour
     public float pixelOffsetWeight = 0.0f;
     [Range(0.0f, 200.0f)]
     public float blueNosieOffsetWeight = 0.0f;
-    [Range(0.0f, 5.0f)]
 
     [Header("Distance Offsets")]
     public int rayMarchSteps = 5;
+    [Range(0.0f, 5.0f)]
     public float marchDistanceOffsetWeight = 0.0f;
     public bool useRayMarchOffset = false;
 

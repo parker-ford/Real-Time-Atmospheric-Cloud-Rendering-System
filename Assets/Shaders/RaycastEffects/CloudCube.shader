@@ -47,6 +47,8 @@ Shader "Parker/CloudCube"
             float _DensityAbsorption;
             int _CloudCubeMode;
             float _NoiseTiling;
+            float _LightIntensity;
+            float _LightAbsorption;
 
             float sampleCloudDensity(float3 samplePos){
                 
@@ -66,16 +68,16 @@ Shader "Parker/CloudCube"
                 Ray ray = getRayFromUV(i.uv, pixelOffset);
                 Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
                 CubeHit hit = rayCubeIntersect(ray, cube);
-                return float4(hit.exit, hit.exit, hit.exit, 1.0);
-                // float density = 0;
-                // if(hit.hit){
-                //     float3 enterPos = ray.origin + hit.enter * ray.direction;
-                //     float3 exitPos = ray.origin + hit.exit * ray.direction;
-                //     float distance = length(exitPos - enterPos);
-                //     density = 1 - exp(-distance * _DensityAbsorption);
-                // }
 
-                // return lerp(mainCol, cubeCol, density);
+                float density = 0;
+                if(hit.hit){
+                    float3 enterPos = ray.origin + hit.enter * ray.direction;
+                    float3 exitPos = ray.origin + hit.exit * ray.direction;
+                    float distance = length(exitPos - enterPos);
+                    density = 1 - exp(-distance * _DensityAbsorption);
+                }
+
+                return lerp(mainCol, cubeCol, density);
             }
 
             float4 noiseBeers(v2f i){
@@ -106,18 +108,24 @@ Shader "Parker/CloudCube"
                 return lerp(mainCol, cubeCol, density);
             }
 
-            float3 marchTowardsLight(float3 pos){
+            float marchTowardsLight(float3 pos){
                 float3 lightDir = -normalize(LIGHT_DIR);
                 float distPerStep = 2.0 / _RayMarchSteps;
                 Ray ray = {pos, lightDir};
-                CubeHit hit = {0, 0, 0};
+                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
+                CubeHit hit = rayCubeIntersect(ray, cube);
+                float totalDensity = 0;
                 [unroll(10)]
                 for(int currStep = 0; currStep < 10; currStep++){
-                    float3 currPos = getMarchPosition(ray, hit, currStep, distPerStep, float2(0, 0));
+                    if(distPerStep * currStep > hit.exit) break;
 
+                    float3 currPos = getMarchPosition(ray, hit, currStep, distPerStep, float2(0, 0));
+                    float3 samplePos = remap_f3(currPos, -_NoiseTiling, _NoiseTiling, 0, 1);
+                    float density = tex3D(_Noise, samplePos).r;
+                    totalDensity += density * distPerStep;
                 }
 
-                return float3(1, 1, 1);
+                return _LightIntensity * exp(-totalDensity * _LightAbsorption);
             }
 
             float4 lightBeers(v2f i){
@@ -150,7 +158,7 @@ Shader "Parker/CloudCube"
                         interScatterTrans.a *= transmittance;
                     }
                 }
-                return lerp(mainCol, interScatterTrans, interScatterTrans.a);
+                return lerp(mainCol, saturate(interScatterTrans), interScatterTrans.a);
             }
 
             fixed4 frag (v2f i) : SV_Target
@@ -160,6 +168,9 @@ Shader "Parker/CloudCube"
                 }
                 if(_CloudCubeMode == 1){
                     return noiseBeers(i);
+                }
+                if(_CloudCubeMode == 2){
+                    return lightBeers(i);
                 }
 
                 return fixed4(1.0, 0.0, 0.0, 1.0);

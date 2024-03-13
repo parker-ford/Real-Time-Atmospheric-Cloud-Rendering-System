@@ -199,4 +199,16 @@ float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, f
     return pos;
 }
 
+// float3 getMarchPosition(Ray ray, CubeHit hit, float step, float distPerStep, float offset){
+//     float3 pos = ray.origin + ray.direction * (hit.enter + step * distPerStep);
+//     float distOffset = 0.0;
+//     if(CHECK_RAYCAST_BITMASK(MARCH_OFFSET)){
+//         distOffset += offset * _RayMarchDistanceOffsetWeight;
+//         distOffset += (float)(_Frame % _NumSuperSamples) / (float)_NumSuperSamples;
+//         distOffset = frac(distOffset) * distPerStep * _RayMarchDistanceOffsetWeight;
+//         pos = pos + ray.direction * distOffset;
+//     }
+//     return pos;
+// }
+
 #endif

@@ -48,6 +48,18 @@ struct CubeHit {
     float exit;
 };
 
+struct Plane {
+    float3 center;
+    float3 normal;
+    float3 up;
+    float size;
+};
+
+struct PlaneHit {
+    int hit;
+    float enter;
+};
+
 float4 sampleBlueNoise(float2 uv){
     float2 pixel = uv * float2(_ScreenParams.x / 256.0, _ScreenParams.y / 256.0) + 0.5;
     float4 blueNoiseSample = tex2D(_BlueNoiseTexture, pixel);
@@ -164,27 +176,96 @@ SphereHit raySphereIntersect(Ray ray, Sphere sphere){
     return hit;
 }
 
-CubeHit rayCubeIntersect(Ray ray, Cube cube){
-    CubeHit hit = {0, 0.0, 0.0};
-    float3 tMin = (cube.center - cube.size * 0.5 - ray.origin) / ray.direction;
-    float3 tMax = (cube.center + cube.size * 0.5 - ray.origin) / ray.direction;
+// CubeHit rayCubeIntersect(Ray ray, Cube cube){
+//     CubeHit hit = {0, 0.0, 0.0};
+//     float3 tMin = (cube.center - cube.size * 0.5 - ray.origin) / ray.direction;
+//     float3 tMax = (cube.center + cube.size * 0.5 - ray.origin) / ray.direction;
 
-    if (tMin.x > tMax.x) { float tmp = tMin.x; tMin.x = tMax.x; tMax.x = tmp; }
-    if (tMin.y > tMax.y) { float tmp = tMin.y; tMin.y = tMax.y; tMax.y = tmp; }
-    if (tMin.z > tMax.z) { float tmp = tMin.z; tMin.z = tMax.z; tMax.z = tmp; }
+//     if (tMin.x > tMax.x) { float tmp = tMin.x; tMin.x = tMax.x; tMax.x = tmp; }
+//     if (tMin.y > tMax.y) { float tmp = tMin.y; tMin.y = tMax.y; tMax.y = tmp; }
+//     if (tMin.z > tMax.z) { float tmp = tMin.z; tMin.z = tMax.z; tMax.z = tmp; }
 
-    float tEnter = max(max(tMin.x, tMin.y), tMin.z);
-    float tExit = min(min(tMax.x, tMax.y), tMax.z);
+//     float tEnter = max(max(tMin.x, tMin.y), tMin.z);
+//     float tExit = min(min(tMax.x, tMax.y), tMax.z);
 
-    if (tEnter < 0.0 || tEnter > tExit) {
-        return hit;
+//     if (tEnter < 0.0 || tEnter > tExit) {
+//         return hit;
+//     }
+
+//     hit.hit = 1;
+//     hit.enter = tEnter;
+//     hit.exit = tExit;
+//     return hit;
+
+// }
+
+PlaneHit rayPlaneIntersect(Ray ray, Plane plane){
+    PlaneHit hit = {0, 0.0};
+
+    float t = dot(plane.normal, plane.center - ray.origin) / dot(plane.normal, ray.direction);
+
+    if(t > 0){
+
+        float3 right = cross(plane.up, plane.normal);
+
+        float3 p = ray.origin + ray.direction * t;
+        float pos_up = dot(p - plane.center, plane.up);
+        float pos_right = dot(p - plane.center, right);
+
+        if(abs(pos_up) < height && abs(pos_right) < plane.size){
+            hit.hit = 1;
+            hit.enter = t;
+        }
+
+        
     }
 
-    hit.hit = 1;
-    hit.enter = tEnter;
-    hit.exit = tExit;
     return hit;
 
+}
+
+CubeHit rayCubeIntersect(Ray ray, Cube cube){
+
+    CubeHit hit = {0, 0.0, 0.0};
+
+    float3 upVectors[6];
+    float3 rightVectors[6];
+
+    upVectors[0] = float3(0,1,0);
+    rightVectors[0] = float3(1,0,0);
+
+    upVectors[1] = float3(0,-1,0);
+    rightVectors[1] = float3(1,0,0);
+
+    upVectors[2] = float3(0,0,1);
+    rightVectors[2] = float3(1,0,0);
+
+    upVectors[3] = float3(0,0,-1);
+    rightVectors[3] = float3(1,0,0);
+
+    upVectors[4] = float3(1,0,0);
+    rightVectors[4] = float3(0,0,1);
+
+    upVectors[5] = float3(-1,0,0);
+    rightVectors[5] = float3(0,0,1);    
+
+    for(int i = 0; i < 6; i++){
+        float3 n = upVectors[i];
+        float3 u = rightVectors[i];
+        intersectData planeIntersect = planeIntersection(rayOrigin, rayDir, pos + n * length/2, n, u, length/2, length/2);
+        if(planeIntersect.intersects){
+            if(result.intersects){
+                result.intersectPoints.x = min(result.intersectPoints.x, planeIntersect.intersectPoints.x);
+                result.intersectPoints.y = max(result.intersectPoints.y, planeIntersect.intersectPoints.y);
+            }
+            else{
+                result.intersects = true;
+                result.intersectPoints = planeIntersect.intersectPoints;
+            }
+        }
+    }
+
+    return result;
 }
 
 float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, float offset){

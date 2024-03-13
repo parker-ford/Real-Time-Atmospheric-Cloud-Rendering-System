@@ -176,12 +176,12 @@ CubeHit rayCubeIntersect(Ray ray, Cube cube){
     float tEnter = max(max(tMin.x, tMin.y), tMin.z);
     float tExit = min(min(tMax.x, tMax.y), tMax.z);
 
-    if (tEnter < 0.0 || tEnter > tExit) {
+    if (tEnter > tExit) {
         return hit;
     }
 
     hit.hit = 1;
-    hit.enter = tEnter;
+    hit.enter = max(0.0, tEnter);
     hit.exit = tExit;
     return hit;
 
@@ -198,17 +198,5 @@ float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, f
     }
     return pos;
 }
-
-// float3 getMarchPosition(Ray ray, CubeHit hit, float step, float distPerStep, float offset){
-//     float3 pos = ray.origin + ray.direction * (hit.enter + step * distPerStep);
-//     float distOffset = 0.0;
-//     if(CHECK_RAYCAST_BITMASK(MARCH_OFFSET)){
-//         distOffset += offset * _RayMarchDistanceOffsetWeight;
-//         distOffset += (float)(_Frame % _NumSuperSamples) / (float)_NumSuperSamples;
-//         distOffset = frac(distOffset) * distPerStep * _RayMarchDistanceOffsetWeight;
-//         pos = pos + ray.direction * distOffset;
-//     }
-//     return pos;
-// }
 
 #endif

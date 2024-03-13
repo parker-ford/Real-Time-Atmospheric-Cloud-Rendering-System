@@ -18,6 +18,9 @@ Shader "Parker/CloudCube"
             #include "UnityCG.cginc"
             #include "../Includes/raycast.cginc"
 
+            #define SUN_COLOR float3(1., 1., 1.)
+            #define LIGHT_DIR float3(0, 1, 1)
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -63,15 +66,16 @@ Shader "Parker/CloudCube"
                 Ray ray = getRayFromUV(i.uv, pixelOffset);
                 Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
                 CubeHit hit = rayCubeIntersect(ray, cube);
-                float density = 0;
-                if(hit.hit){
-                    float3 enterPos = ray.origin + hit.enter * ray.direction;
-                    float3 exitPos = ray.origin + hit.exit * ray.direction;
-                    float distance = length(exitPos - enterPos);
-                    density = 1 - exp(-distance * _DensityAbsorption);
-                }
+                return float4(hit.exit, hit.exit, hit.exit, 1.0);
+                // float density = 0;
+                // if(hit.hit){
+                //     float3 enterPos = ray.origin + hit.enter * ray.direction;
+                //     float3 exitPos = ray.origin + hit.exit * ray.direction;
+                //     float distance = length(exitPos - enterPos);
+                //     density = 1 - exp(-distance * _DensityAbsorption);
+                // }
 
-                return lerp(mainCol, cubeCol, density);
+                // return lerp(mainCol, cubeCol, density);
             }
 
             float4 noiseBeers(v2f i){
@@ -100,6 +104,53 @@ Shader "Parker/CloudCube"
                 }
 
                 return lerp(mainCol, cubeCol, density);
+            }
+
+            float3 marchTowardsLight(float3 pos){
+                float3 lightDir = -normalize(LIGHT_DIR);
+                float distPerStep = 2.0 / _RayMarchSteps;
+                Ray ray = {pos, lightDir};
+                CubeHit hit = {0, 0, 0};
+                [unroll(10)]
+                for(int currStep = 0; currStep < 10; currStep++){
+                    float3 currPos = getMarchPosition(ray, hit, currStep, distPerStep, float2(0, 0));
+
+                }
+
+                return float3(1, 1, 1);
+            }
+
+            float4 lightBeers(v2f i){
+                fixed4 mainCol = tex2D(_MainTex, i.uv);
+                float4 cubeCol = float4(0.0, 1.0, 0.0, 1.0);
+                float4 blueNoiseSample = sampleBlueNoise(i.uv);
+                float2 pixelOffset = blueNoiseSample.rg;
+                float distanceOffset = blueNoiseSample.b;
+                Ray ray = getRayFromUV(i.uv, pixelOffset);
+                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
+                CubeHit hit = rayCubeIntersect(ray, cube);
+                float4 interScatterTrans = float4(0, 0, 0, 1);
+                if(hit.hit){
+                    float3 enterPos = ray.origin + hit.enter * ray.direction;
+                    float3 exitPos = ray.origin + hit.exit * ray.direction;
+                    float distance = length(exitPos - enterPos);
+                    float distPerStep = distance / _RayMarchSteps;
+                    [unroll(20)]
+                    for(int currStep = 0; currStep < _RayMarchSteps; currStep++){
+                        float3 pos = getMarchPosition(ray, hit, currStep, distPerStep, distanceOffset);
+                        float3 samplePos = remap_f3(pos, -_NoiseTiling, _NoiseTiling, 0, 1);
+                        float density = tex3D(_Noise, samplePos).r;
+                        
+                        float3 luminance = float3(0,0,0);
+                        luminance = SUN_COLOR * marchTowardsLight(pos) * density;
+
+                        float transmittance = exp(-density * distPerStep);
+                        float3 integScatter = (luminance - luminance * transmittance) * (1. / density);
+                        interScatterTrans.rgb += interScatterTrans.a * integScatter;
+                        interScatterTrans.a *= transmittance;
+                    }
+                }
+                return lerp(mainCol, interScatterTrans, interScatterTrans.a);
             }
 
             fixed4 frag (v2f i) : SV_Target

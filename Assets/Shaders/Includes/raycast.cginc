@@ -37,6 +37,17 @@ struct SphereHit {
     float exit;
 };
 
+struct Cube {
+    float3 center;
+    float3 size;
+};
+
+struct CubeHit {
+    int hit;
+    float enter;
+    float exit;
+};
+
 float4 sampleBlueNoise(float2 uv){
     float2 pixel = uv * float2(_ScreenParams.x / 256.0, _ScreenParams.y / 256.0) + 0.5;
     float4 blueNoiseSample = tex2D(_BlueNoiseTexture, pixel);
@@ -151,6 +162,29 @@ SphereHit raySphereIntersect(Ray ray, Sphere sphere){
         }
     }
     return hit;
+}
+
+CubeHit rayCubeIntersect(Ray ray, Cube cube){
+    CubeHit hit = {0, 0.0, 0.0};
+    float3 tMin = (cube.center - cube.size * 0.5 - ray.origin) / ray.direction;
+    float3 tMax = (cube.center + cube.size * 0.5 - ray.origin) / ray.direction;
+
+    if (tMin.x > tMax.x) { float tmp = tMin.x; tMin.x = tMax.x; tMax.x = tmp; }
+    if (tMin.y > tMax.y) { float tmp = tMin.y; tMin.y = tMax.y; tMax.y = tmp; }
+    if (tMin.z > tMax.z) { float tmp = tMin.z; tMin.z = tMax.z; tMax.z = tmp; }
+
+    float tEnter = max(max(tMin.x, tMin.y), tMin.z);
+    float tExit = min(min(tMax.x, tMax.y), tMax.z);
+
+    if (tEnter < 0.0 || tEnter > tExit) {
+        return hit;
+    }
+
+    hit.hit = 1;
+    hit.enter = tEnter;
+    hit.exit = tExit;
+    return hit;
+
 }
 
 float3 getMarchPosition(Ray ray, SphereHit hit, float step, float distPerStep, float offset){

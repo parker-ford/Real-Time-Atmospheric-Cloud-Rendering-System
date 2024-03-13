@@ -29,7 +29,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float worleyFBM = worleyNoise0_pw*0.625f + worleyNoise1_pw*0.25f + worleyNoise2_pw*0.125f;
 
-    float perlinWorleyNoise = remap_f(perlinNoise, 0.0f, 1.0f, worleyFBM, 1.0f);
+    // float perlinWorleyNoise = remap_f(perlinNoise, 0.0f, 1.0f, worleyFBM, 1.0f);
+    float perlinWorleyNoise = remap_f(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);
     
     float worleyNoise0 = 1.0 - worleyNoise_3D(uvw, cellSize * 1);
     float worleyNoise1 = 1.0 - worleyNoise_3D(uvw, cellSize * 2);

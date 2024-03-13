@@ -8,6 +8,10 @@ public class CloudRenderController : MonoBehaviour
     public Texture3D lowFrequencyCloudNosie;
     public bool resetShader = false;
     public float densityAbsorption = 0.5f;
+    public enum CloudCubeMode{
+        DistanceBeers
+    }
+    public CloudCubeMode cloudCubeMode = CloudCubeMode.DistanceBeers;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,6 +26,7 @@ public class CloudRenderController : MonoBehaviour
             resetShader = false;
         }
         Shader.SetGlobalFloat("_DensityAbsorption", densityAbsorption);
+        Shader.SetGlobalInt("_CloudCubeMode", (int)cloudCubeMode);
     }
     void SetTextures(){
         Shader.SetGlobalTexture("_LowFrequencyCloudNoise", lowFrequencyCloudNosie);

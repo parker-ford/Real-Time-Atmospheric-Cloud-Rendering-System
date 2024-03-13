@@ -259,7 +259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71e89409b2f0f68429238b4d93a08cb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureName: Test3D
+  textureName: LowFrequencyCloudNoise
   computeTextureMaker: {fileID: 7200000, guid: 20ee4a0290af3494cadb334fce9c8af6, type: 3}
   applyImageEffectTexture3D: {fileID: 320551159}
   resolution: 256

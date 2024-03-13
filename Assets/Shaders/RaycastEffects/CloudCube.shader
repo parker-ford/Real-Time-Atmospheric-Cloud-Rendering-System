@@ -59,7 +59,7 @@ Shader "Parker/CloudCube"
                 float2 pixelOffset = blueNoiseSample.rg;
                 float distanceOffset = blueNoiseSample.b;
                 Ray ray = getRayFromUV(i.uv, pixelOffset);
-                Cube cube = {float3(0, 0, 0), {1.0,1.0, 1.0}};
+                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
                 CubeHit hit = rayCubeIntersect(ray, cube);
                 float density = 0;
                 if(hit.hit){

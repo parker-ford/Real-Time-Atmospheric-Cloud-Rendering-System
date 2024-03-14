@@ -16,6 +16,7 @@ public class TextureGenerator2D : MonoBehaviour
     public bool genMipMaps = true;
 
     private Texture2D texture;
+    public bool autoRegenerateTexture = false;
     public bool regenerateTexture = false;
     public bool saveTexture = false;
 
@@ -78,6 +79,9 @@ public class TextureGenerator2D : MonoBehaviour
         if(regenerateTexture){
             GenerateTexture();
             regenerateTexture = false;
+        }
+        if(autoRegenerateTexture){
+            GenerateTexture();
         }
     }
 }

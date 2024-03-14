@@ -1,0 +1,35 @@
+#pragma kernel CSMain
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+float offset;
+float spread;
+float upperSlope;
+float lowerSlope;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution];
+
+
+    float val = 0;
+    if(uv.y < offset){
+        val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * upperSlope));
+    }
+    else{
+        val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * lowerSlope));
+    }
+    
+
+    pixel.color = float4(val, val, val, 1);
+
+
+    pixels[id.x + id.y * resolution] = pixel;
+}

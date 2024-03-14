@@ -332,6 +332,7 @@ GameObject:
   m_Component:
   - component: {fileID: 832411164}
   - component: {fileID: 832411165}
+  - component: {fileID: 832411166}
   m_Layer: 0
   m_Name: TextureGenerator2D
   m_TagString: Untagged
@@ -366,13 +367,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f808fdd291a04d840a245befaa66195c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureName: Test
-  computeTextureMaker: {fileID: 7200000, guid: 9fa1bb69b16664041a864ee7cdd13101, type: 3}
+  textureName: SingleHeightGradient
+  computeTextureMaker: {fileID: 7200000, guid: c7d0753dec180a941af15830dee4fb26, type: 3}
   applyImageEffectTexture2D: {fileID: 68210181}
   resolution: 256
   genMipMaps: 1
+  autoRegenerateTexture: 1
   regenerateTexture: 0
   saveTexture: 0
+--- !u!114 &832411166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832411161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3e73e4bf7bd7c645940768aa5ec538e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 7200000, guid: c7d0753dec180a941af15830dee4fb26, type: 3}
+  spread: 0.1
+  offset: 0.5
+  upperSlope: 1
+  lowerSlope: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

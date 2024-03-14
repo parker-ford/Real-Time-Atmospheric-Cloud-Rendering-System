@@ -213,7 +213,7 @@ Transform:
   m_GameObject: {fileID: 653461674}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -253,9 +253,9 @@ MonoBehaviour:
   pixelOffsetType: 0
   pixelOffsetWeight: 1
   blueNosieOffsetWeight: 1
-  rayMarchSteps: 5
+  rayMarchSteps: 10
   marchDistanceOffsetWeight: 1
-  useRayMarchOffset: 0
+  useRayMarchOffset: 1
 --- !u!114 &653461681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285,8 +285,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: 97c8341e6b5ff8e428e5446aae58b647, type: 3}
   lowFrequencyCloudNosie: {fileID: 11700000, guid: 78baa1d6eacccc54192fbbb700822b9b, type: 2}
+  noise: {fileID: 11700000, guid: 590c501620aac6a45bde2d2aa954eac6, type: 2}
   resetShader: 0
-  densityAbsorption: 0.5
+  densityAbsorption: 0.75
+  cloudCubeMode: 2
+  noiseTiling: 1.5
+  lightIntensity: 1
+  lightAbsorption: 1
 --- !u!1 &1922977654
 GameObject:
   m_ObjectHideFlags: 0

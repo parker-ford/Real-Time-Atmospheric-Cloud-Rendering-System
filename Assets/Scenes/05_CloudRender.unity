@@ -137,7 +137,7 @@ GameObject:
   - component: {fileID: 657228050}
   - component: {fileID: 657228049}
   - component: {fileID: 657228048}
-  - component: {fileID: 657228047}
+  - component: {fileID: 657228051}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -219,22 +219,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &657228047
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 657228043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7163ed4fccb49ae4a948b6cde6d3cf51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shader: {fileID: 4800000, guid: a30a8a1d800185b42a8a807570a4dbee, type: 3}
-  lowFrequencyCloudNosie: {fileID: 11700000, guid: 78baa1d6eacccc54192fbbb700822b9b, type: 2}
-  resetShader: 0
-  densityAbsorption: 2
 --- !u!114 &657228048
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -250,7 +234,7 @@ MonoBehaviour:
   shader: {fileID: 4800000, guid: a30a8a1d800185b42a8a807570a4dbee, type: 3}
   antiAliasingShader: {fileID: 4800000, guid: be179c1a1bbd2094584d99ba048c2537, type: 3}
   blurShader: {fileID: 4800000, guid: 1a65f2f6aa4a4074fbd4169c847f76fb, type: 3}
-  numSamples: 1
+  numSamples: 16
   useBlur: 0
   blurMode: 0
 --- !u!114 &657228049
@@ -269,7 +253,7 @@ MonoBehaviour:
   pixelOffsetType: 0
   pixelOffsetWeight: 1
   blueNosieOffsetWeight: 1
-  rayMarchSteps: 10
+  rayMarchSteps: 20
   marchDistanceOffsetWeight: 1
   useRayMarchOffset: 1
 --- !u!114 &657228050
@@ -287,6 +271,25 @@ MonoBehaviour:
   moveNormalSpeed: 10
   moveFastSpeed: 20
   rotationSpeed: 2000
+--- !u!114 &657228051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 657228043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0fc3ae9bf2227e45a1109226242aedd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lowFrequencyCloudNoise: {fileID: 11700000, guid: 0752815d1a5a65242a06daf3105f8245, type: 2}
+  heightDensityGradient: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
+  densityAbsorption: 1
+  resetShader: 0
+  noiseTilingSettings: 4096
+  flipTransmittance: 0
+  cloudCoverageMode: 1
 --- !u!1 &2138084822
 GameObject:
   m_ObjectHideFlags: 0

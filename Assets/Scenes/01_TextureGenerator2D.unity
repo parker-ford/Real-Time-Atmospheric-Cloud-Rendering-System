@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 154258fdfc7ed8f42a2007636e6db0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  channel: 4
 --- !u!1 &474503819
 GameObject:
   m_ObjectHideFlags: 0
@@ -368,11 +369,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textureName: SingleHeightGradient
-  computeTextureMaker: {fileID: 7200000, guid: c7d0753dec180a941af15830dee4fb26, type: 3}
+  computeTextureMaker: {fileID: 7200000, guid: 21473dafceac5ca43af67ea72be391a5, type: 3}
   applyImageEffectTexture2D: {fileID: 68210181}
   resolution: 256
   genMipMaps: 1
-  autoRegenerateTexture: 1
+  autoRegenerateTexture: 0
   regenerateTexture: 0
   saveTexture: 0
 --- !u!114 &832411166
@@ -382,7 +383,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 832411161}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3e73e4bf7bd7c645940768aa5ec538e, type: 3}
   m_Name: 

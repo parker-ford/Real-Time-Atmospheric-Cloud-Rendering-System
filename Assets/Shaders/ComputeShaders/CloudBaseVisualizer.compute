@@ -1,0 +1,59 @@
+#pragma kernel CSMain
+
+#include "UnityCG.cginc"
+#include "../Includes/noise.cginc"
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+
+float4 generateLowFreqNoise(float2 uv){
+    float perlinNoise = perlinNoise_2D_fbm(uv, .8, 8, 3);
+    perlinNoise = remap_f(perlinNoise, -1.0, 1.0, 0.0, 1.0);
+
+    float cellSize = 4;
+
+    float worleyNoise0_pw = 1.0 - worleyNoise_2D(uv, cellSize * 2);
+    float worleyNoise1_pw = 1.0 - worleyNoise_2D(uv, cellSize * 8);
+    float worleyNoise2_pw = 1.0 - worleyNoise_2D(uv, cellSize * 14);
+
+    float worleyFBM = worleyNoise0_pw*0.625f + worleyNoise1_pw*0.25f + worleyNoise2_pw*0.125f;
+
+    float perlinWorleyNoise = remap_f(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);
+   //float perlinWorleyNoise = remap_f(perlinNoise, 0.0f, 1.0f, worleyFBM, 1.0f);
+
+    float worleyNoise0 = 1.0 - worleyNoise_2D(uv, cellSize * 1);
+    float worleyNoise1 = 1.0 - worleyNoise_2D(uv, cellSize * 2);
+    float worleyNoise2 = 1.0 - worleyNoise_2D(uv, cellSize * 4);
+    float worleyNoise3 = 1.0 - worleyNoise_2D(uv, cellSize * 8);
+    float worleyNoise4 = 1.0 - worleyNoise_2D(uv, cellSize * 16);
+
+    float worleyFBM0 = worleyNoise1*0.625f + worleyNoise2*0.25f + worleyNoise3*0.125f;
+    float worleyFBM1 = worleyNoise2*0.625f + worleyNoise3*0.25f + worleyNoise4*0.125f;
+    float worleyFBM2 = worleyNoise3*0.75f + worleyNoise4*0.25f;
+
+    return  float4(perlinWorleyNoise, worleyFBM0, worleyFBM1, worleyFBM2);
+}
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution];
+
+    float4 lowFreqNoise = generateLowFreqNoise(uv);
+
+    float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
+    float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+
+    pixel.color = float4(baseCloud, baseCloud, baseCloud, 1.0);
+    // pixel.color = float4(lowFreqNoise.r, lowFreqNoise.r, lowFreqNoise.r, 1.0);
+    // pixel.color = lowFreqNoise;
+
+
+    pixels[id.x + id.y * resolution] = pixel;
+}

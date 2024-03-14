@@ -51,6 +51,7 @@ Shader "Parker/CloudRender"
             sampler2D _MainTex;
             sampler3D _LowFrequencyCloudNoise;
             sampler2D _HeightDensityGradient;
+            sampler2D _BaseCloud2D;
             float _NoiseTiling;
             float _DensityAbsorption;
             int _FlipTransmittance;
@@ -59,6 +60,9 @@ Shader "Parker/CloudRender"
             float _AtmosphereLow;
             float _AtmosphereHigh;
             int _BaseCloudMode;
+            int _UseLighting;
+            float _LightAbsorption;
+            float _LightIntensity;
 
             float getHeightFract(float3 p){
                 p.y -= EARTH_RADIUS;
@@ -76,6 +80,9 @@ Shader "Parker/CloudRender"
                     float4 lowFreqNoise = tex3D(_LowFrequencyCloudNoise, samplePos);
                     float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
                     baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+                }
+                else if(_BaseCloudMode == 2){
+                    baseCloud = tex2D(_BaseCloud2D, samplePos.xz).r;
                 }
                 return baseCloud;
             }
@@ -98,43 +105,26 @@ Shader "Parker/CloudRender"
             }
 
             float sampleCloudDensity(float4 pos){
-                
-                //float4 samplePos;
-                // samplePos.xz = remap_f2(pos.xz, -LOW_FREQUENCY_CLOUD_NOISE_SIZE, LOW_FREQUENCY_CLOUD_NOISE_SIZE, 0.0, 1.0);
-                // samplePos.y = getHeightFract(pos);
-                // //mip level
-                // samplePos.w = remap_f(pos.w, LOW_ATMOSPHERE_RADIUS_HEIGHT, MAX_VIEW_DISTANCE, 0, 6);
-
-                // float4 lowFreqNoise = tex3Dlod(_LowFrequencyCloudNoise, samplePos);
-                // float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
-                // float baseCloud = remap_f(lowFreqNoise.r, -(1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
-
-                // //float densityHeight = getDensityHeight(samplePos.y);
-                // //baseCloud *= densityHeight;
-
-                // float cloudCoverage = CLOUD_COVERAGE;
-                // float baseCloudWithCoverage = remap_f(baseCloud, cloudCoverage, 1., 0., 1.);
-                // baseCloud = baseCloudWithCoverage * cloudCoverage;
-
-                // return saturate(baseCloud);
-
-                // float3 samplePos;
-                // samplePos = remap_f3(pos.xyz, -_NoiseTiling, _NoiseTiling, 0.0, 1.0);
-                // float height = getHeightFract(pos.xyz);
-                // float heightDensity = tex2D(_HeightDensityGradient, float2(height, 0)).r;
-                // //return heightDensity;
-                // heightDensity = 1.0;
-                // float density = tex3D(_LowFrequencyCloudNoise, samplePos).r;
-                // density = smoothstep(0.0, .1, density+(CLOUD_COVERAGE - 1.0));
-                //return clamp(density, 0.0, 1.0);
-
                 float density = getBaseCloud(pos);
                 density = getHeightDensity(density);
                 density = getCloudCoverage(density);
                 return clamp(density, 0.0, 1.0);
             }
 
-            
+            float marchTowardsLight(float4 pos){
+                Ray ray = {pos.xyz, normalize(float3(1, 1, 0))};
+                float distPerStep = 50.0; //idk about this
+                float totalDensity = 1.0;
+                SphereHit hit = {0, 0, 0};
+                for(int i = 0; i < 5; i++){
+                    float4 currPos;
+                    currPos.xyz = getMarchPosition(ray, hit, i, distPerStep, 0);
+                    currPos.w = length(currPos - ray.origin);
+                    float cloudDensity = sampleCloudDensity(currPos);
+                    totalDensity *= exp(-cloudDensity * distPerStep * _LightAbsorption);
+                }
+                return _LightIntensity * totalDensity;
+            }      
 
             fixed4 frag (v2f i) : SV_Target
             {
@@ -144,8 +134,6 @@ Shader "Parker/CloudRender"
                 float distanceOffset = blueNoiseSample.b;
 
                 Ray ray = getRayFromUV(i.uv, blueNoiseSample.rg, 1);
-                // Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + LOW_ATMOSPHERE_RADIUS_HEIGHT : LOW_ATMOSPHERE_RADIUS_HEIGHT};
-                // Sphere upperAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + HIGH_ATMOSPHERE_RADIUS_HEIGHT : HIGH_ATMOSPHERE_RADIUS_HEIGHT};
                 Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereLow : _AtmosphereLow};
                 Sphere upperAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereHigh : _AtmosphereHigh};
                 SphereHit lowerAtmosphereHit = raySphereIntersect(ray, lowerAtmosphere);
@@ -161,7 +149,7 @@ Shader "Parker/CloudRender"
                     float totalTransmittance = 0.0;
                     // float4 intScatterTrans = float4(1,1,1,1);
                     float transmittance = 1.0;
-
+                    float3 scatteredLight = float3(0.0, 0.0, 0.0);
                     [unroll(20)]
                     for(int rayMarchStep = 0; rayMarchStep < _RayMarchSteps; rayMarchStep++){
                         float4 pos;
@@ -171,13 +159,23 @@ Shader "Parker/CloudRender"
                         if(cloudDensity > 0.0){
                             float dTrans = exp(-cloudDensity * (1.0/_RayMarchSteps) * _DensityAbsorption);
                             transmittance *= dTrans;
+                            
+                            float3 luminance = float3(1,1,1) * marchTowardsLight(pos);
+                            float3 dScatter = (luminance - luminance * dTrans) * (1.0 - cloudDensity);
+                            scatteredLight += transmittance * dScatter;
                         }
                         if( transmittance <= CLOUDS_MIN_TRANSMITTANCE ) break;
                     }
                     if(_FlipTransmittance == 1){
                         transmittance = 1 - transmittance;
                     }
-                    return lerp(mainCol, float4(1,1,1,1), transmittance);
+                    if(_UseLighting == 1){
+                        return lerp(mainCol, float4(scatteredLight, 1.0), transmittance);
+                    }
+                    else{
+                        return lerp(mainCol, float4(1.0, 1.0, 1.0, 1.0), transmittance);
+                    }
+                    
                 }
                 return mainCol;
             }

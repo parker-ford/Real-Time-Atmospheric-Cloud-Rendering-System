@@ -55,16 +55,28 @@ Shader "Parker/CloudRender"
             float _DensityAbsorption;
             int _FlipTransmittance;
             int _CloudCoverageMode;
+            float _CloudCoverage;
+            float _AtmosphereLow;
+            float _AtmosphereHigh;
+            int _BaseCloudMode;
 
             float getHeightFract(float3 p){
                 p.y -= EARTH_RADIUS;
-                return (p.y - LOW_ATMOSPHERE_RADIUS_HEIGHT) / (HIGH_ATMOSPHERE_RADIUS_HEIGHT - LOW_ATMOSPHERE_RADIUS_HEIGHT);
+                return (p.y - _AtmosphereLow) / (_AtmosphereHigh - _AtmosphereLow);
             }
 
             float getBaseCloud(float4 pos){
                 float3 samplePos;
                 samplePos = remap_f3(pos.xyz, -_NoiseTiling, _NoiseTiling, 0.0, 1.0);
-                float baseCloud = tex3D(_LowFrequencyCloudNoise, samplePos).r;
+                float baseCloud = 0;
+                if(_BaseCloudMode == 0){
+                    baseCloud = tex3D(_LowFrequencyCloudNoise, samplePos).r;
+                }
+                else if(_BaseCloudMode == 1){
+                    float4 lowFreqNoise = tex3D(_LowFrequencyCloudNoise, samplePos);
+                    float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
+                    baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+                }
                 return baseCloud;
             }
 
@@ -74,10 +86,13 @@ Shader "Parker/CloudRender"
 
             float getCloudCoverage(float density){
                 if(_CloudCoverageMode == 1){
-                    density = smoothstep( 0., CLOUDS_BASE_EDGE_SOFTNESS, density+(CLOUDS_COVERAGE-1.) );
+                    density = smoothstep( 0., CLOUDS_BASE_EDGE_SOFTNESS, density+(_CloudCoverage- 1.) );
                 }
                 if(_CloudCoverageMode == 2){
-                   density = remap_f(density, CLOUD_COVERAGE, 1., 0.0, 1.0) * (CLOUD_COVERAGE);
+                   density = remap_f(density, (1.0  -_CloudCoverage), 1., 0.0, 1.0) * (_CloudCoverage);
+                }
+                if(_CloudCoverageMode == 3){
+                    density *= step((1.0 - _CloudCoverage), density);
                 }
                 return density;
             }
@@ -129,8 +144,10 @@ Shader "Parker/CloudRender"
                 float distanceOffset = blueNoiseSample.b;
 
                 Ray ray = getRayFromUV(i.uv, blueNoiseSample.rg, 1);
-                Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + LOW_ATMOSPHERE_RADIUS_HEIGHT : LOW_ATMOSPHERE_RADIUS_HEIGHT};
-                Sphere upperAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + HIGH_ATMOSPHERE_RADIUS_HEIGHT : HIGH_ATMOSPHERE_RADIUS_HEIGHT};
+                // Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + LOW_ATMOSPHERE_RADIUS_HEIGHT : LOW_ATMOSPHERE_RADIUS_HEIGHT};
+                // Sphere upperAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + HIGH_ATMOSPHERE_RADIUS_HEIGHT : HIGH_ATMOSPHERE_RADIUS_HEIGHT};
+                Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereLow : _AtmosphereLow};
+                Sphere upperAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereHigh : _AtmosphereHigh};
                 SphereHit lowerAtmosphereHit = raySphereIntersect(ray, lowerAtmosphere);
                 SphereHit upperAtmosphereHit = raySphereIntersect(ray, upperAtmosphere);
                 float currRayDist = 0;

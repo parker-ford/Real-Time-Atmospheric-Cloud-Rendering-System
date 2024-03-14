@@ -5,6 +5,9 @@
 
 //Raycast Parameters
 sampler2D _BlueNoiseTexture;
+sampler2D _BlueNoiseTexture0;
+sampler2D _BlueNoiseTexture1;
+sampler2D _BlueNoiseTexture2;
 int _RaycastBitMask;
 float _RayMarchSteps;
 float _RayMarchDistanceOffsetWeight;
@@ -50,8 +53,12 @@ struct CubeHit {
 
 float4 sampleBlueNoise(float2 uv){
     float2 pixel = uv * float2(_ScreenParams.x / 256.0, _ScreenParams.y / 256.0) + 0.5;
-    float4 blueNoiseSample = tex2D(_BlueNoiseTexture, pixel);
-    return blueNoiseSample;
+    //float4 blueNoiseSample = tex2D(_BlueNoiseTexture, pixel);
+    float sample0 = tex2D(_BlueNoiseTexture0, pixel);
+    float sample1 = tex2D(_BlueNoiseTexture1, pixel);
+    float sample2 = tex2D(_BlueNoiseTexture2, pixel);
+
+    return float4(sample0, sample1, sample2, 1.0);
 }
 
 float updateMarchOffset(float offset, float step){

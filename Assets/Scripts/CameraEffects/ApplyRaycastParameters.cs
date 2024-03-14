@@ -38,6 +38,9 @@ public class ApplyRaycastParameters : MonoBehaviour
     void Start()
     {
         Shader.SetGlobalTexture("_BlueNoiseTexture", UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Textures/BlueNoise/BlueNoise.png"));
+        Shader.SetGlobalTexture("_BlueNoiseTexture0", UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Textures/BlueNoise/BlueNoise0.png"));
+        Shader.SetGlobalTexture("_BlueNoiseTexture1", UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Textures/BlueNoise/BlueNoise1.png"));
+        Shader.SetGlobalTexture("_BlueNoiseTexture2", UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Textures/BlueNoise/BlueNoise2.png"));
     }
 
     // Update is called once per frame

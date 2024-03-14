@@ -4,13 +4,19 @@ using UnityEngine;
 
 public class CloudRendererController : MonoBehaviour
 {
-    public Texture3D lowFrequencyCloudNoise;
-    public Texture2D heightDensityGradient;
-    public Texture2D baseCloud2D;
-    public float densityAbsorption = 0.5f;
-    public bool resetShader = false;
+    public enum CloudCoverageMode{
+        None = 0,
+        Himilayas = 1,
+        SwissAlps = 2,
+        Threshold = 3,
+    }
+    public enum BaseCloudMode{
+        SingleChannel = 0,
+        AllChannel = 1,
+        _2D = 2,
+    }
 
-    public enum NoiseTilingSettings{
+        public enum NoiseTilingSettings{
         _128 = 128,
         _256 = 256,
         _512 = 512,
@@ -20,26 +26,29 @@ public class CloudRendererController : MonoBehaviour
         _8192 = 8192,
         _16384 = 16384
     };
+
+
+    [Header("Texture Settings")]
+    public Texture3D lowFrequencyCloudNoise;
+    public Texture2D heightDensityGradient;
+    public Texture2D baseCloud2D;
     public NoiseTilingSettings noiseTilingSettings = NoiseTilingSettings._4096;
+    public bool resetShader = false;
 
-    public bool flipTransmittance = false;
-
-    public enum CloudCoverageMode{
-        None = 0,
-        Himilayas = 1,
-        SwissAlps = 2,
-        Threshold = 3,
-    }
-    public CloudCoverageMode cloudCoverageMode = CloudCoverageMode.Himilayas;
-    public enum BaseCloudMode{
-        SingleChannel = 0,
-        AllChannel = 1,
-        _2D = 2,
-    }
+    [Header("Cloud Density")]
     public BaseCloudMode baseCloudMode = BaseCloudMode.SingleChannel;
+    public float densityAbsorption = 0.5f;
+    public float cloudEdgeCutOff = 0.15f;
+    public bool flipTransmittance = false;
+    public bool cloudDensityAsTransparency = true;
 
+    [Header("Cloud Coverage")]
+    public CloudCoverageMode cloudCoverageMode = CloudCoverageMode.Himilayas;
     [Range(0.0f, 1.0f)]
     public float cloudCoverage = 1.0f;
+
+
+    [Header("Atmosphere")]
     public float atmosphereLow = 1500.0f;
     public float atmosphereHigh = 5000.0f;
 
@@ -78,6 +87,8 @@ public class CloudRendererController : MonoBehaviour
         Shader.SetGlobalInt("_UseLighting", useLighting ? 1 : 0);
         Shader.SetGlobalFloat("_LightIntensity", lightIntensity);
         Shader.SetGlobalFloat("_LightAbsorption", lightAbsorption);
+        Shader.SetGlobalInt("_CloudDensityAsTransparency", cloudDensityAsTransparency ? 1 : 0);
+        Shader.SetGlobalFloat("_CloudEdgeCutOff", cloudEdgeCutOff);
     }
 
 

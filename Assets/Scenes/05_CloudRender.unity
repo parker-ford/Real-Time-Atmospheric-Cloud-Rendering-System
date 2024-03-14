@@ -251,10 +251,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: a30a8a1d800185b42a8a807570a4dbee, type: 3}
   pixelOffsetType: 0
-  pixelOffsetWeight: 1
-  blueNosieOffsetWeight: 1
-  rayMarchSteps: 20
-  marchDistanceOffsetWeight: 1
+  pixelOffsetWeight: 0
+  blueNosieOffsetWeight: 0
+  rayMarchSteps: 15
+  marchDistanceOffsetWeight: 0.88
   useRayMarchOffset: 1
 --- !u!114 &657228050
 MonoBehaviour:
@@ -285,15 +285,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lowFrequencyCloudNoise: {fileID: 11700000, guid: 78baa1d6eacccc54192fbbb700822b9b, type: 2}
   heightDensityGradient: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
+  baseCloud2D: {fileID: 2800000, guid: 78d63e7ab9964e246ad7edf2e533f4ad, type: 2}
   densityAbsorption: 15
   resetShader: 0
   noiseTilingSettings: 4096
   flipTransmittance: 1
   cloudCoverageMode: 2
-  baseCloudMode: 0
-  cloudCoverage: 0.524
+  baseCloudMode: 2
+  cloudCoverage: 0.319
   atmosphereLow: 1500
-  atmosphereHigh: 5000
+  atmosphereHigh: 2205
+  useLighting: 1
+  lightIntensity: 2.17
+  lightAbsorption: 0.02
 --- !u!1 &2138084822
 GameObject:
   m_ObjectHideFlags: 0

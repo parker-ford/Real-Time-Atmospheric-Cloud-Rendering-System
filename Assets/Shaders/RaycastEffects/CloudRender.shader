@@ -63,6 +63,8 @@ Shader "Parker/CloudRender"
             int _UseLighting;
             float _LightAbsorption;
             float _LightIntensity;
+            int _CloudDensityAsTransparency;
+            float _CloudEdgeCutOff;
 
             float getHeightFract(float3 p){
                 p.y -= EARTH_RADIUS;
@@ -169,12 +171,20 @@ Shader "Parker/CloudRender"
                     if(_FlipTransmittance == 1){
                         transmittance = 1 - transmittance;
                     }
+
+                    float4 finalColor = float4(0.8,0.8,0.8,1);
                     if(_UseLighting == 1){
-                        return lerp(mainCol, float4(scatteredLight, 1.0), transmittance);
+                        finalColor = float4(scatteredLight, 1.0);
                     }
-                    else{
-                        return lerp(mainCol, float4(1.0, 1.0, 1.0, 1.0), transmittance);
+                    float finalAlpha = step(_CloudEdgeCutOff, transmittance);
+                    if(_CloudDensityAsTransparency == 1){
+                       finalAlpha = transmittance;
                     }
+
+
+                    return lerp(mainCol, finalColor, finalAlpha);
+
+           
                     
                 }
                 return mainCol;

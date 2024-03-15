@@ -286,18 +286,21 @@ MonoBehaviour:
   lowFrequencyCloudNoise: {fileID: 11700000, guid: 78baa1d6eacccc54192fbbb700822b9b, type: 2}
   heightDensityGradient: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
   baseCloud2D: {fileID: 2800000, guid: 78d63e7ab9964e246ad7edf2e533f4ad, type: 2}
-  densityAbsorption: 15
-  resetShader: 0
   noiseTilingSettings: 4096
-  flipTransmittance: 1
-  cloudCoverageMode: 2
+  resetShader: 0
   baseCloudMode: 2
-  cloudCoverage: 0.319
+  densityAbsorption: 15
+  cloudEdgeCutOff: 0.15
+  flipTransmittance: 1
+  cloudDensityAsTransparency: 0
+  cloudCoverageMode: 2
+  cloudCoverage: 0.405
+  cloudHeightDensityMode: 1
   atmosphereLow: 1500
-  atmosphereHigh: 2205
+  atmosphereHigh: 3053
   useLighting: 1
-  lightIntensity: 2.17
-  lightAbsorption: 0.02
+  lightIntensity: 3.54
+  lightAbsorption: 0.005
 --- !u!1 &2138084822
 GameObject:
   m_ObjectHideFlags: 0

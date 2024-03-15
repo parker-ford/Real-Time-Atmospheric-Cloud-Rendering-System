@@ -1,0 +1,39 @@
+#pragma kernel CSMain
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+float test;
+Texture2D<float4> LeftTexture;
+SamplerState samplerLeftTexture;
+
+Texture2D<float4> RightTexture;
+SamplerState samplerRightTexture;
+
+Texture2D<float4> MidTexture;
+SamplerState samplerMidTexture;
+// Texture2D texture;
+//SamplerState textureSampler;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution];
+
+    float leftVal = LeftTexture.SampleLevel(samplerLeftTexture, uv, 0).r;
+    float rightVal = RightTexture.SampleLevel(samplerRightTexture, uv, 0).r;
+    float midVal = MidTexture.SampleLevel(samplerMidTexture, uv, 0).r;
+
+    float result = midVal;
+
+    result = lerp(midVal, rightVal, uv.x);
+
+    pixel.color = float4(result, result, result, 1);
+
+    pixels[id.x + id.y * resolution] = pixel;
+}

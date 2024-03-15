@@ -332,6 +332,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 832411164}
+  - component: {fileID: 832411167}
   - component: {fileID: 832411165}
   - component: {fileID: 832411166}
   m_Layer: 0
@@ -369,7 +370,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textureName: SingleHeightGradient
-  computeTextureMaker: {fileID: 7200000, guid: 21473dafceac5ca43af67ea72be391a5, type: 3}
+  computeTextureMaker: {fileID: 7200000, guid: 06dbbd02c70748b4daac02d9754caf95, type: 3}
   applyImageEffectTexture2D: {fileID: 68210181}
   resolution: 256
   genMipMaps: 1
@@ -393,6 +394,22 @@ MonoBehaviour:
   offset: 0.5
   upperSlope: 1
   lowerSlope: 1
+--- !u!114 &832411167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832411161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 100ede8d006699242a2dd8ece7cf1544, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 7200000, guid: 06dbbd02c70748b4daac02d9754caf95, type: 3}
+  leftTexture: {fileID: 2800000, guid: 3b0fc679888edc34d876915d8d6127b4, type: 2}
+  midTexture: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
+  rightTexture: {fileID: 2800000, guid: e1666d31c606cea40b2521f89acc44c1, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

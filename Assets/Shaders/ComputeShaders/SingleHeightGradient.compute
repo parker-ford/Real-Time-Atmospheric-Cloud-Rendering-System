@@ -30,6 +30,5 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     pixel.color = float4(val, val, val, 1);
 
-
     pixels[id.x + id.y * resolution] = pixel;
 }

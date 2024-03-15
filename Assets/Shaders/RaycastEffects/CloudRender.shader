@@ -65,6 +65,7 @@ Shader "Parker/CloudRender"
             float _LightIntensity;
             int _CloudDensityAsTransparency;
             float _CloudEdgeCutOff;
+            int _CloudHeightDensityMode;
 
             float getHeightFract(float3 p){
                 p.y -= EARTH_RADIUS;
@@ -89,7 +90,14 @@ Shader "Parker/CloudRender"
                 return baseCloud;
             }
 
-            float getHeightDensity(float density){
+            float getHeightDensity(float4 pos, float density){
+                if(_CloudHeightDensityMode == 1){
+                    float heightFract = getHeightFract(pos.xyz);
+                    float heightDensity = tex2D(_HeightDensityGradient, float2(heightFract, 0)).r;
+                    density = lerp(density, heightDensity, heightFract);
+                    //density *= heightDensity;
+                    //density *= (1.0 - heightFract);
+                }
                 return density;
             }
 
@@ -108,7 +116,7 @@ Shader "Parker/CloudRender"
 
             float sampleCloudDensity(float4 pos){
                 float density = getBaseCloud(pos);
-                density = getHeightDensity(density);
+                density = getHeightDensity(pos, density);
                 density = getCloudCoverage(density);
                 return clamp(density, 0.0, 1.0);
             }
@@ -147,9 +155,7 @@ Shader "Parker/CloudRender"
                     float3 exitPos = ray.origin + ray.direction * upperAtmosphereHit.enter;
                     float dist = length(exitPos - enterPos);
                     float distPerStep = dist / _RayMarchSteps;
-                    // distPerStep /= 4.0;
                     float totalTransmittance = 0.0;
-                    // float4 intScatterTrans = float4(1,1,1,1);
                     float transmittance = 1.0;
                     float3 scatteredLight = float3(0.0, 0.0, 0.0);
                     [unroll(20)]
@@ -166,7 +172,7 @@ Shader "Parker/CloudRender"
                             float3 dScatter = (luminance - luminance * dTrans) * (1.0 - cloudDensity);
                             scatteredLight += transmittance * dScatter;
                         }
-                        if( transmittance <= CLOUDS_MIN_TRANSMITTANCE ) break;
+                        //if( transmittance <= CLOUDS_MIN_TRANSMITTANCE ) break;
                     }
                     if(_FlipTransmittance == 1){
                         transmittance = 1 - transmittance;

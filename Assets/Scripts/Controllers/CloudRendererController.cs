@@ -35,6 +35,7 @@ public class CloudRendererController : MonoBehaviour
 
     [Header("Texture Settings")]
     public Texture3D lowFrequencyCloudNoise;
+    public Texture3D highFrequencyCloudNoise;
     public Texture2D heightDensityGradient;
     public Texture2D baseCloud2D;
     public NoiseTilingSettings noiseTilingSettings = NoiseTilingSettings._4096;
@@ -73,6 +74,7 @@ public class CloudRendererController : MonoBehaviour
 
     void ResetShader(){
         Shader.SetGlobalTexture("_LowFrequencyCloudNoise", lowFrequencyCloudNoise);
+        Shader.SetGlobalTexture("_HighFrequencyCloudNoise", highFrequencyCloudNoise);
         Shader.SetGlobalTexture("_HeightDensityGradient", heightDensityGradient);
         Shader.SetGlobalTexture("_BaseCloud2D", baseCloud2D);
     }

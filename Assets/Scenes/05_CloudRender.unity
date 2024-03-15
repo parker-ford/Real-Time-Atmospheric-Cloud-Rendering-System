@@ -283,18 +283,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0fc3ae9bf2227e45a1109226242aedd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lowFrequencyCloudNoise: {fileID: 11700000, guid: 78baa1d6eacccc54192fbbb700822b9b, type: 2}
+  lowFrequencyCloudNoise: {fileID: 11700000, guid: fe00fb9e00e5bda41940465d0074aa64, type: 2}
   heightDensityGradient: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
   baseCloud2D: {fileID: 2800000, guid: 78d63e7ab9964e246ad7edf2e533f4ad, type: 2}
   noiseTilingSettings: 4096
   resetShader: 0
-  baseCloudMode: 2
+  baseCloudMode: 1
   densityAbsorption: 15
   cloudEdgeCutOff: 0.15
   flipTransmittance: 1
   cloudDensityAsTransparency: 0
   cloudCoverageMode: 2
-  cloudCoverage: 0.405
+  cloudCoverage: 0.55
   cloudHeightDensityMode: 1
   atmosphereLow: 1500
   atmosphereHigh: 3053

@@ -50,6 +50,7 @@ Shader "Parker/CloudRender"
 
             sampler2D _MainTex;
             sampler3D _LowFrequencyCloudNoise;
+            sampler3D _HighFrequencyCloudNoise;
             sampler2D _HeightDensityGradient;
             sampler2D _BaseCloud2D;
             float _NoiseTiling;

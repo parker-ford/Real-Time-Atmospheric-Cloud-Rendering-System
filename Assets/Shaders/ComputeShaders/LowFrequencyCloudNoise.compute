@@ -20,6 +20,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
     float perlinNoise = perlinNoise_3D_fbm(uvw, .8, 8, 3);
+    perlinNoise = remap_f(perlinNoise, -1.0, 1.0, 0.0, 1.0);
 
     float cellSize = 4;
 
@@ -29,8 +30,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float worleyFBM = worleyNoise0_pw*0.625f + worleyNoise1_pw*0.25f + worleyNoise2_pw*0.125f;
 
-    // float perlinWorleyNoise = remap_f(perlinNoise, 0.0f, 1.0f, worleyFBM, 1.0f);
-    float perlinWorleyNoise = remap_f(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);
+    float perlinWorleyNoise = remap_f(perlinNoise, 0.0f, 1.0f, worleyFBM, 1.0f);
+    // float perlinWorleyNoise = remap_f(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);
     
     float worleyNoise0 = 1.0 - worleyNoise_3D(uvw, cellSize * 1);
     float worleyNoise1 = 1.0 - worleyNoise_3D(uvw, cellSize * 2);
@@ -42,7 +43,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float worleyFBM1 = worleyNoise2*0.625f + worleyNoise3*0.25f + worleyNoise4*0.125f;
     float worleyFBM2 = worleyNoise3*0.75f + worleyNoise4*0.25f;
 
-    pixel.color = float4(perlinWorleyNoise, worleyFBM0, worleyFBM1, worleyFBM2);
+    float4 lowFreqNoise = float4(perlinWorleyNoise, worleyFBM0, worleyFBM1, worleyFBM2);
+    pixel.color = lowFreqNoise;
+
+    //Debug base cloud
+    // float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
+    // float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+    // pixel.color = float4(baseCloud, baseCloud, baseCloud, 1.0);
+
+
 
     pixels[id.x + id.y * resolution + id.z * resolution * resolution] = pixel;
 }

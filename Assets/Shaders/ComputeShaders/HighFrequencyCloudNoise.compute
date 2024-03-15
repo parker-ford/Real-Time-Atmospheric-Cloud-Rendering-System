@@ -1,0 +1,35 @@
+#pragma kernel CSMain
+
+#include "UnityCG.cginc"
+#include "../Includes/noise.cginc"
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 uvw = float3(id.xyz) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution + id.z * resolution * resolution];
+
+    float cellSize = 2;    
+    float worleyNoise0 = 1.0 - worleyNoise_3D(uvw, cellSize * 1);
+    float worleyNoise1 = 1.0 - worleyNoise_3D(uvw, cellSize * 2);
+    float worleyNoise2 = 1.0 - worleyNoise_3D(uvw, cellSize * 4);
+    float worleyNoise3 = 1.0 - worleyNoise_3D(uvw, cellSize * 8);
+
+    float worleyFBM0 = worleyNoise0*0.625f + worleyNoise1*0.25f + worleyNoise2*0.125f;
+    float worleyFBM1 = worleyNoise1*0.625f + worleyNoise2*0.25f + worleyNoise3*0.125f;
+    float worleyFBM2 = worleyNoise2*0.75f + worleyNoise3*0.25f;
+
+    float4 highFreqNoise = float4(worleyFBM0, worleyFBM1, worleyFBM2, 1.0);
+    pixel.color = highFreqNoise;
+
+
+    pixels[id.x + id.y * resolution + id.z * resolution * resolution] = pixel;
+}

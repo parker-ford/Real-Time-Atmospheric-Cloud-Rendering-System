@@ -67,6 +67,9 @@ Shader "Parker/CloudRender"
             int _CloudDensityAsTransparency;
             float _CloudEdgeCutOff;
             int _CloudHeightDensityMode;
+            int _CloudDetailMode;
+            float _CloudDetailFactor;
+            float _CloudDetailStrength;
 
             float getHeightFract(float3 p){
                 p.y -= EARTH_RADIUS;
@@ -115,10 +118,24 @@ Shader "Parker/CloudRender"
                 return density;
             }
 
+            float addCloudDetail(float density, float4 pos){
+                if(_CloudDetailMode == 1){
+                    float3 samplePos;
+                    samplePos = remap_f3(pos.xyz, -_NoiseTiling / _CloudDetailFactor, _NoiseTiling / _CloudDetailFactor, 0.0, 1.0);
+                    float4 highFreqNoise = tex3D(_HighFrequencyCloudNoise, samplePos);
+                    float highFreqFBM = (highFreqNoise.g * 0.625) + (highFreqNoise.b * 0.25) + (highFreqNoise.a * 0.125);
+                    float hieghtFract = getHeightFract(pos.xyz);
+                    highFreqFBM = lerp(highFreqFBM, 1.0 - highFreqFBM, hieghtFract * 4.0);
+                    density = remap_f(density, highFreqFBM * _CloudDetailStrength, 1.0, 0.0, 1.0) ;
+                }
+                return density;
+            }
+
             float sampleCloudDensity(float4 pos){
                 float density = getBaseCloud(pos);
                 density = getHeightDensity(pos, density);
                 density = getCloudCoverage(density);
+                density = addCloudDetail(density, pos);
                 return clamp(density, 0.0, 1.0);
             }
 
@@ -185,7 +202,7 @@ Shader "Parker/CloudRender"
                     }
                     float finalAlpha = step(_CloudEdgeCutOff, transmittance);
                     if(_CloudDensityAsTransparency == 1){
-                       finalAlpha = transmittance;
+                       finalAlpha = transmittance * step(_CloudEdgeCutOff, transmittance);
                     }
 
 

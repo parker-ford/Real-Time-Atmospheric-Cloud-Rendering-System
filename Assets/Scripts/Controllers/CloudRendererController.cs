@@ -32,6 +32,11 @@ public class CloudRendererController : MonoBehaviour
         Linear = 1,
     }
 
+    public enum CloudDetailMode {
+        None = 0,
+        Active = 1,
+    }
+
 
     [Header("Texture Settings")]
     public Texture3D lowFrequencyCloudNoise;
@@ -65,6 +70,11 @@ public class CloudRendererController : MonoBehaviour
     public bool useLighting = false;
     public float lightIntensity = 1.0f;
     public float lightAbsorption = 1.0f;
+
+    [Header("Cloud Detail")]
+    public CloudDetailMode cloudDetailMode = CloudDetailMode.None;
+    public float cloudDetailFactor = 1.0f;
+    public float cloudDetailStrength = 0.2f;
 
     // Start is called before the first frame update
     void Start()
@@ -100,6 +110,9 @@ public class CloudRendererController : MonoBehaviour
         Shader.SetGlobalInt("_CloudDensityAsTransparency", cloudDensityAsTransparency ? 1 : 0);
         Shader.SetGlobalFloat("_CloudEdgeCutOff", cloudEdgeCutOff);
         Shader.SetGlobalInt("_CloudHeightDensityMode", (int)cloudHeightDensityMode);
+        Shader.SetGlobalInt("_CloudDetailMode", (int)cloudDetailMode);
+        Shader.SetGlobalFloat("_CloudDetailFactor", cloudDetailFactor);
+        Shader.SetGlobalFloat("_CloudDetailStrength", cloudDetailStrength);
     }
 
 

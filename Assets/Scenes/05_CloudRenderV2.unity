@@ -231,10 +231,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec2167e33b687b94495d83ee9646d1d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shader: {fileID: 4800000, guid: a30a8a1d800185b42a8a807570a4dbee, type: 3}
+  shader: {fileID: 4800000, guid: a711c4b21924b0141bf605083a3b8131, type: 3}
   antiAliasingShader: {fileID: 4800000, guid: be179c1a1bbd2094584d99ba048c2537, type: 3}
   blurShader: {fileID: 4800000, guid: 1a65f2f6aa4a4074fbd4169c847f76fb, type: 3}
-  numSamples: 16
+  numSamples: 1
   useBlur: 0
   blurMode: 0
 --- !u!114 &657228049
@@ -253,9 +253,9 @@ MonoBehaviour:
   pixelOffsetType: 0
   pixelOffsetWeight: 0
   blueNosieOffsetWeight: 0
-  rayMarchSteps: 15
-  marchDistanceOffsetWeight: 0.88
-  useRayMarchOffset: 1
+  rayMarchSteps: 10
+  marchDistanceOffsetWeight: 0.75
+  useRayMarchOffset: 0
 --- !u!114 &657228050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -280,31 +280,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 657228043}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0fc3ae9bf2227e45a1109226242aedd, type: 3}
+  m_Script: {fileID: 11500000, guid: 78aab4a6c492ec946a00a283ba617de8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lowFrequencyCloudNoise: {fileID: 11700000, guid: fe00fb9e00e5bda41940465d0074aa64, type: 2}
-  highFrequencyCloudNoise: {fileID: 11700000, guid: 83a814f06f218594cace0d750f304cc6, type: 2}
-  heightDensityGradient: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
-  baseCloud2D: {fileID: 2800000, guid: 78d63e7ab9964e246ad7edf2e533f4ad, type: 2}
-  noiseTilingSettings: 8192
-  resetShader: 0
-  baseCloudMode: 1
-  densityAbsorption: 15
-  cloudEdgeCutOff: 0.15
-  flipTransmittance: 1
-  cloudDensityAsTransparency: 1
-  cloudCoverageMode: 2
-  cloudCoverage: 0.55
-  cloudHeightDensityMode: 0
-  atmosphereLow: 1500
-  atmosphereHigh: 5000
-  useLighting: 1
-  lightIntensity: 1.5
-  lightAbsorption: 0.001
-  cloudDetailMode: 1
-  cloudDetailFactor: 8
-  cloudDetailStrength: 0.2
+  cloudMap: {fileID: 2800000, guid: 3d706ef0341883e41b67d52bb2e90d19, type: 2}
+  cloudHeightGradient: {fileID: 2800000, guid: 624528762e00a5e45a700883f36e88e8, type: 2}
+  atmosphereLow: 100
+  atmosphereHigh: 500
+  noiseTiling: 256
+  lightIntensity: 0.05
+  lightAbsorption: 0.5
 --- !u!1 &2138084822
 GameObject:
   m_ObjectHideFlags: 0

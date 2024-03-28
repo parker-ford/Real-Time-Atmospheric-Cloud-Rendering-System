@@ -6,9 +6,9 @@ public class CloudRendererController : MonoBehaviour
 {
     public enum CloudCoverageMode{
         None = 0,
-        Himilayas = 1,
-        SwissAlps = 2,
-        Threshold = 3,
+        A = 1,
+        B = 2,
+        C = 3,
     }
     public enum BaseCloudMode{
         SingleChannel = 0,
@@ -55,7 +55,7 @@ public class CloudRendererController : MonoBehaviour
     public bool cloudDensityAsTransparency = true;
 
     [Header("Cloud Coverage")]
-    public CloudCoverageMode cloudCoverageMode = CloudCoverageMode.Himilayas;
+    public CloudCoverageMode cloudCoverageMode = CloudCoverageMode.B;
     [Range(0.0f, 1.0f)]
     public float cloudCoverage = 1.0f;
 

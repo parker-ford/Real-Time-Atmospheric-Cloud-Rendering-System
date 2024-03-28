@@ -1,0 +1,48 @@
+#pragma kernel CSMain
+
+#include "UnityCG.cginc"
+#include "../Includes/noise.cginc"
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution];
+
+    float perlinNoise0 = perlinNoise_2D_fbm(uv, .8, 4, 7);
+    float perlinNoise1 = perlinNoise_2D_fbm(uv, .8, 8, 7);
+    float perlinNoise2 = perlinNoise_2D_fbm(uv, .8, 16, 7);
+    float perlinNoise3 = perlinNoise_2D_fbm(uv, .8, 32, 7);
+
+    // perlinNoise0 = remap_f(perlinNoise0, -1.0, 1.0, 0.0, 1.0);
+    perlinNoise1 = remap_f(perlinNoise1, -1.0, 1.0, 0.0, 1.0);
+    perlinNoise2 = remap_f(perlinNoise2, -1.0, 1.0, 0.0, 1.0);
+    perlinNoise3 = remap_f(perlinNoise3, -1.0, 1.0, 0.0, 1.0);
+
+    float perlinCoverage = 1.0;
+    float perlinWorleyCoverage = 1.0;
+    float perlinNoise = perlinNoise0;
+
+    perlinCoverage = remap_f(perlinNoise, 0.0, 0.3, 1.0, 0.0);
+
+    float perlinFBM = ((1.0 - perlinNoise1) * 0.625) + ((1.0 - perlinNoise2) * 0.25) + ((1.0 - perlinNoise3) * 0.125);
+    // perlinCoverage = remap_f(perlinCoverage, (1.0 - perlinFBM), 1.0, 0.0, 1.0);
+
+    //float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
+    //float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+    perlinCoverage *= perlinFBM * 0.5;
+    pixel.color = float4(perlinCoverage, 0, 0, 1);
+    // pixel.color = float4(perlinCoverage, perlinNoise2, 0, 1);
+
+
+    pixels[id.x + id.y * resolution] = pixel;
+}

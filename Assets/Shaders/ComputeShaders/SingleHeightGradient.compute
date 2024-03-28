@@ -1,4 +1,5 @@
 #pragma kernel CSMain
+#include "../Includes/common.cginc"
 
 struct Pixel {
     float4 color;
@@ -19,14 +20,17 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     Pixel pixel = pixels[id.x + id.y * resolution];
 
 
+    // float val = 0;
+    // if(uv.y < offset){
+    //     val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * upperSlope));
+    // }
+    // else{
+    //     val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * lowerSlope));
+    // }
     float val = 0;
-    if(uv.y < offset){
-        val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * upperSlope));
-    }
-    else{
-        val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * lowerSlope));
-    }
-    
+    float height = uv.y;
+    val = remap_f(height, 0.0, 0.1, 0.0, 1.0);
+    val *= remap_f(height, 0.1, 0.2, 1.0, 0.0);
 
     pixel.color = float4(val, val, val, 1);
 

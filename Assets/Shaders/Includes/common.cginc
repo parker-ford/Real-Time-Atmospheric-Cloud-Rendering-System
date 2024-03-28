@@ -6,7 +6,7 @@
 #define PI 3.14159265359
 
 //Common Parameters
-int _Frame;
+uint _Frame;
 int _NumSuperSamples;
 float _CameraFOV;
 float _CameraAspect;

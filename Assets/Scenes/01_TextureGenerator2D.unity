@@ -332,9 +332,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 832411164}
-  - component: {fileID: 832411167}
   - component: {fileID: 832411165}
   - component: {fileID: 832411166}
+  - component: {fileID: 832411167}
   m_Layer: 0
   m_Name: TextureGenerator2D
   m_TagString: Untagged
@@ -370,10 +370,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textureName: SingleHeightGradient
-  computeTextureMaker: {fileID: 7200000, guid: 06dbbd02c70748b4daac02d9754caf95, type: 3}
+  computeTextureMaker: {fileID: 7200000, guid: c7d0753dec180a941af15830dee4fb26, type: 3}
   applyImageEffectTexture2D: {fileID: 68210181}
-  resolution: 256
-  genMipMaps: 1
+  resolution: 512
+  genMipMaps: 0
   autoRegenerateTexture: 0
   regenerateTexture: 0
   saveTexture: 0
@@ -401,7 +401,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 832411161}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 100ede8d006699242a2dd8ece7cf1544, type: 3}
   m_Name: 

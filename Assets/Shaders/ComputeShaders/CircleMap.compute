@@ -1,0 +1,32 @@
+#pragma kernel CSMain
+
+#include "UnityCG.cginc"
+#include "../Includes/noise.cginc"
+
+struct Pixel {
+    float4 color;
+};
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution];
+
+    float2 center = float2(0.5, 0.5);
+    float radius = 0.5;
+    float dist = distance(uv, center);
+    float val = 0;
+    if(dist < radius){
+        val = 1;
+    }
+
+    pixel.color = float4(val, val, val, 1);
+
+    pixels[id.x + id.y * resolution] = pixel;
+}

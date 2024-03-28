@@ -53,6 +53,8 @@ Shader "Parker/CloudRender"
             sampler3D _HighFrequencyCloudNoise;
             sampler2D _HeightDensityGradient;
             sampler2D _BaseCloud2D;
+            sampler2D _CloudMap;
+
             float _NoiseTiling;
             float _DensityAbsorption;
             int _FlipTransmittance;
@@ -176,7 +178,7 @@ Shader "Parker/CloudRender"
                     float totalTransmittance = 0.0;
                     float transmittance = 1.0;
                     float3 scatteredLight = float3(0.0, 0.0, 0.0);
-                    [unroll(20)]
+                    [unroll(1)]
                     for(int rayMarchStep = 0; rayMarchStep < _RayMarchSteps; rayMarchStep++){
                         float4 pos;
                         pos.xyz = getMarchPosition(ray, lowerAtmosphereHit, rayMarchStep, distPerStep, distanceOffset);

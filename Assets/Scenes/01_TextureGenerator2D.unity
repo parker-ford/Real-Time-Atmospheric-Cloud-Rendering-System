@@ -369,8 +369,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f808fdd291a04d840a245befaa66195c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureName: SingleHeightGradient
-  computeTextureMaker: {fileID: 7200000, guid: c7d0753dec180a941af15830dee4fb26, type: 3}
+  textureName: CloudMap
+  computeTextureMaker: {fileID: 7200000, guid: 3fb01b3b0f5d8f3419076a88cfae7f85, type: 3}
   applyImageEffectTexture2D: {fileID: 68210181}
   resolution: 512
   genMipMaps: 0

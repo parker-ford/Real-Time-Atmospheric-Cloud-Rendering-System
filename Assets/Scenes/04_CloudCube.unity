@@ -135,9 +135,9 @@ GameObject:
   - component: {fileID: 653461676}
   - component: {fileID: 653461675}
   - component: {fileID: 653461681}
+  - component: {fileID: 653461682}
   - component: {fileID: 653461680}
   - component: {fileID: 653461679}
-  - component: {fileID: 653461682}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -213,7 +213,7 @@ Transform:
   m_GameObject: {fileID: 653461674}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -3}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -283,9 +283,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7163ed4fccb49ae4a948b6cde6d3cf51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  absorptionCoefficient: 0.1
+  volumeMode: 1
+  absorptionCoefficient: 0.5
   stepSize: 0.2
-  lightDir: {x: 0, y: 0, z: 1}
+  lightDir: {x: 0, y: 1, z: 0}
 --- !u!1 &1922977654
 GameObject:
   m_ObjectHideFlags: 0

@@ -42,138 +42,61 @@ Shader "Parker/CloudCube"
             }
 
             sampler2D _MainTex;
-            sampler3D _LowFrequencyCloudNoise;
-            sampler3D _Noise;
-            float _DensityAbsorption;
-            int _CloudCubeMode;
-            float _NoiseTiling;
-            float _LightIntensity;
-            float _LightAbsorption;
+            float3 _LightDir;
+            float _AbsorptionCoefficient;
+            float _StepSize;
 
-            float sampleCloudDensity(float3 samplePos){
-                
-                float4 lowFreqNoise = tex3D(_LowFrequencyCloudNoise, samplePos);
-                float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
-                float baseCloud = remap_f(lowFreqNoise.r, -(1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
-
-                return saturate(baseCloud);
-            }
-
-            float4 distanceBeers(v2f i){
-                fixed4 mainCol = tex2D(_MainTex, i.uv);
-                float4 cubeCol = float4(0.0, 1.0, 0.0, 1.0);
-                float4 blueNoiseSample = sampleBlueNoise(i.uv);
-                float2 pixelOffset = blueNoiseSample.rg;
-                float distanceOffset = blueNoiseSample.b;
-                Ray ray = getRayFromUV(i.uv, pixelOffset);
-                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
-                CubeHit hit = rayCubeIntersect(ray, cube);
-
-                float density = 0;
-                if(hit.hit){
-                    float3 enterPos = ray.origin + hit.enter * ray.direction;
-                    float3 exitPos = ray.origin + hit.exit * ray.direction;
-                    float distance = length(exitPos - enterPos);
-                    density = 1 - exp(-distance * _DensityAbsorption);
-                }
-
-                return lerp(mainCol, cubeCol, density);
-            }
-
-            float4 noiseBeers(v2f i){
-                fixed4 mainCol = tex2D(_MainTex, i.uv);
-                float4 cubeCol = float4(0.0, 1.0, 0.0, 1.0);
-                float4 blueNoiseSample = sampleBlueNoise(i.uv);
-                float2 pixelOffset = blueNoiseSample.rg;
-                float distanceOffset = blueNoiseSample.b;
-                Ray ray = getRayFromUV(i.uv, pixelOffset);
-                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
-                CubeHit hit = rayCubeIntersect(ray, cube);
-                float density = 0;
-                float totalDensity = 0;
-                if(hit.hit){
-                    float3 enterPos = ray.origin + hit.enter * ray.direction;
-                    float3 exitPos = ray.origin + hit.exit * ray.direction;
-                    float distance = length(exitPos - enterPos);
-                    float distPerStep = distance / _RayMarchSteps;
-                    [unroll(20)]
-                    for(int currStep = 0; currStep < _RayMarchSteps; currStep++){
-                        float3 pos = getMarchPosition(ray, hit, currStep, distPerStep, distanceOffset);
-                        float3 samplePos = remap_f3(pos, -_NoiseTiling, _NoiseTiling, 0, 1);
-                        totalDensity += tex3D(_Noise, samplePos).r * distPerStep;
-                    }
-                    density = 1 - exp(-totalDensity * _DensityAbsorption);
-                }
-
-                return lerp(mainCol, cubeCol, density);
-            }
-
-            float marchTowardsLight(float3 pos){
-                float3 lightDir = -normalize(LIGHT_DIR);
-                float distPerStep = 2.0 / _RayMarchSteps;
-                Ray ray = {pos, lightDir};
-                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
-                CubeHit hit = rayCubeIntersect(ray, cube);
-                float totalDensity = 0;
-                [unroll(10)]
-                for(int currStep = 0; currStep < 10; currStep++){
-                    if(distPerStep * currStep > hit.exit) break;
-
-                    float3 currPos = getMarchPosition(ray, hit, currStep, distPerStep, float2(0, 0));
-                    float3 samplePos = remap_f3(currPos, -_NoiseTiling, _NoiseTiling, 0, 1);
-                    float density = tex3D(_Noise, samplePos).r;
-                    totalDensity += density * distPerStep;
-                }
-
-                return _LightIntensity * exp(-totalDensity * _LightAbsorption);
-            }
-
-            float4 lightBeers(v2f i){
-                fixed4 mainCol = tex2D(_MainTex, i.uv);
-                float4 cubeCol = float4(0.0, 1.0, 0.0, 1.0);
-                float4 blueNoiseSample = sampleBlueNoise(i.uv);
-                float2 pixelOffset = blueNoiseSample.rg;
-                float distanceOffset = blueNoiseSample.b;
-                Ray ray = getRayFromUV(i.uv, pixelOffset);
-                Cube cube = {float3(0, 0, 0), {2.0,2.0,2.0}};
-                CubeHit hit = rayCubeIntersect(ray, cube);
-                float4 interScatterTrans = float4(0, 0, 0, 1);
-                if(hit.hit){
-                    float3 enterPos = ray.origin + hit.enter * ray.direction;
-                    float3 exitPos = ray.origin + hit.exit * ray.direction;
-                    float distance = length(exitPos - enterPos);
-                    float distPerStep = distance / _RayMarchSteps;
-                    [unroll(20)]
-                    for(int currStep = 0; currStep < _RayMarchSteps; currStep++){
-                        float3 pos = getMarchPosition(ray, hit, currStep, distPerStep, distanceOffset);
-                        float3 samplePos = remap_f3(pos, -_NoiseTiling, _NoiseTiling, 0, 1);
-                        float density = tex3D(_Noise, samplePos).r;
-                        
-                        float3 luminance = float3(0,0,0);
-                        luminance = SUN_COLOR * marchTowardsLight(pos) * density;
-
-                        float transmittance = exp(-density * distPerStep);
-                        float3 integScatter = (luminance - luminance * transmittance) * (1. / density);
-                        interScatterTrans.rgb += interScatterTrans.a * integScatter;
-                        interScatterTrans.a *= transmittance;
-                    }
-                }
-                return lerp(mainCol, saturate(interScatterTrans), interScatterTrans.a);
-            }
+           
 
             fixed4 frag (v2f i) : SV_Target
             {
-                if(_CloudCubeMode == 0){
-                    return distanceBeers(i);
-                }
-                if(_CloudCubeMode == 1){
-                    return noiseBeers(i);
-                }
-                if(_CloudCubeMode == 2){
-                    return lightBeers(i);
-                }
+                // float4 mainColor = tex2D(_MainTex, i.uv);
+                // float4 sphereCol = float4(0,1,0,1);
+                // float3 lightColor = float3(1.3, 0.3, 0.9);
+                // Ray ray = getRayFromUV(i.uv, float2(0,0), 0);
+                // Sphere sphere = {float3(0, 0, 0), 1};
+                // SphereHit hit = raySphereIntersect(ray, sphere);
 
-                return fixed4(1.0, 0.0, 0.0, 1.0);
+                // if(hit.hit){
+                //     float dist = abs(hit.exit - hit.enter);
+                //     float transmittance = exp(-_AbsorptionCoefficient * dist);
+
+                //     float stepSize = _StepSize;
+                //     int ns = ceil((hit.exit - hit.enter) / stepSize);
+                //     stepSize = (hit.exit - hit.enter) / ns;
+
+                //     float transparency = 1;
+                //     float3 result = float3(0,0,0);
+
+                //     for(int n = 0; n < ns; n++){
+                //         float t = hit.exit - stepSize * (n + 0.5);
+                //         float3 samplePos = ray.origin + ray.direction * t;
+                //         float sampleTransparency = exp(-_AbsorptionCoefficient * stepSize);
+                //         transparency *= sampleTransparency;
+                //         Ray lightRay = {samplePos, _LightDir};  
+                //         SphereHit lightHit = raySphereIntersect(lightRay, sphere);
+                        
+                //             float lightAttenuation = exp(-_AbsorptionCoefficient * lightHit.exit);
+                //             result += lightColor * lightAttenuation * stepSize;
+               
+
+                //         result *= sampleTransparency;
+                //     }
+
+                //     return mainColor * transparency + float4(result, 1.0);
+                // }
+
+                // return mainColor;
+
+                float4 mainColor = tex2D(_MainTex, i.uv);
+                float4 sphereCol = float4(0,1,0,1);
+                Ray ray = getRayFromUV(i.uv, float2(0,0), 0);
+                Sphere sphere = {float3(0, 0, 0), 0.5};
+                SphereHit hit = raySphereIntersect(ray, sphere);
+                if(hit.inside){
+                    return sphereCol;
+                }
+                return mainColor;
             }
             ENDCG
         }

@@ -283,15 +283,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7163ed4fccb49ae4a948b6cde6d3cf51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shader: {fileID: 4800000, guid: 97c8341e6b5ff8e428e5446aae58b647, type: 3}
-  lowFrequencyCloudNosie: {fileID: 11700000, guid: 78baa1d6eacccc54192fbbb700822b9b, type: 2}
-  noise: {fileID: 11700000, guid: 590c501620aac6a45bde2d2aa954eac6, type: 2}
-  resetShader: 0
-  densityAbsorption: 0.75
-  cloudCubeMode: 2
-  noiseTiling: 1.5
-  lightIntensity: 1
-  lightAbsorption: 1
+  absorptionCoefficient: 0.1
+  stepSize: 0.2
+  lightDir: {x: 0, y: 0, z: 1}
 --- !u!1 &1922977654
 GameObject:
   m_ObjectHideFlags: 0

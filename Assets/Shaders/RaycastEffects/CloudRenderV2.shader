@@ -149,7 +149,7 @@ Shader "Parker/CloudRenderV2"
                         float accumulatedDensity = 0.0;
 
                         uint stepCount = 0;
-                        [unroll(30)]
+                        [unroll(1)]
                         while(stepCount < _RayMarchSteps && distanceTraveled < endDist){
                             pos = ray.origin + ray.direction * distanceTraveled;
                             v = sampleDensity(pos);

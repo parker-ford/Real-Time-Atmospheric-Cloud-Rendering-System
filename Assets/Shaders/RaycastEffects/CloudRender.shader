@@ -145,7 +145,7 @@ Shader "Parker/CloudRender"
                 Ray ray = {pos.xyz, normalize(float3(1, 1, 0))};
                 float distPerStep = 50.0; //idk about this
                 float totalDensity = 1.0;
-                SphereHit hit = {0, 0, 0};
+                SphereHit hit = {0, 0, 0, 0};
                 for(int i = 0; i < 5; i++){
                     float4 currPos;
                     currPos.xyz = getMarchPosition(ray, hit, i, distPerStep, 0);

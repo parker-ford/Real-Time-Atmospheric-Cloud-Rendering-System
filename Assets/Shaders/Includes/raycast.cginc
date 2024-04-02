@@ -36,6 +36,7 @@ struct Sphere {
 
 struct SphereHit {
     int hit;
+    int inside;
     float enter;
     float exit;
 };
@@ -147,7 +148,7 @@ Ray getRayFromUV(float2 uv, float2 pixelOffset, uint scaled){
 }
 
 SphereHit raySphereIntersect(Ray ray, Sphere sphere){
-    SphereHit hit = {0, 0.0, 0.0};
+    SphereHit hit = {0, 0, 0.0, 0.0};
     float3 oc = ray.origin - sphere.center;
     float b = 2. * dot(oc, ray.direction);
     float c = dot(oc, oc) - sphere.radius * sphere.radius;
@@ -164,8 +165,9 @@ SphereHit raySphereIntersect(Ray ray, Sphere sphere){
         }
         else if (t1 >= 0.0){
             hit.hit = 1;
-            hit.enter = t1;
-            hit.exit = t0;
+            hit.inside = 1;
+            hit.enter = 0;
+            hit.exit = t1;
         }
     }
     return hit;

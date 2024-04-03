@@ -8,6 +8,7 @@ public class CloudCubeController : MonoBehaviour
         UnlitVolume,
         SimpleLitVolume,
         LitVolume,
+        NonHomogeneousVolume
     }
     public VolumeMode volumeMode = VolumeMode.UnlitVolume;
 
@@ -16,11 +17,18 @@ public class CloudCubeController : MonoBehaviour
     public float absorptionCoefficient = 0.5f;
     public float scatteringCoefficient = 0.5f;
     public float density = 1.0f;
+    [Range(-1.0f, 1.0f)]
+    public float phaseAsymmetry = 0.0f;
     [Range(0.01f, 1.0f)]
     public float stepSize = 0.2f;
     public Vector3 lightDir = new Vector3(0, 1, 0);
+    public float lightIntensity = 1.0f;
+    public Texture3D denistyField; 
+    public float noiseTiling = 1.0f;
+    public float transmissionCutoff = 0.1f;
     void Start()
     {
+        Shader.SetGlobalTexture("_DensityField", denistyField);
     }
 
     // Update is called once per frame
@@ -33,6 +41,10 @@ public class CloudCubeController : MonoBehaviour
         Shader.SetGlobalFloat("_StepSize", stepSize);
         Shader.SetGlobalVector("_LightDir", lightDir);
         Shader.SetGlobalFloat("_SphereRadius", sphereRadius);
+        Shader.SetGlobalFloat("_PhaseAsymmetry", phaseAsymmetry);
+        Shader.SetGlobalFloat("_LightIntensity", lightIntensity);
+        Shader.SetGlobalFloat("_NoiseTiling", noiseTiling);
+        Shader.SetGlobalFloat("_TransmissionCutoff", transmissionCutoff);
     }
 
 }

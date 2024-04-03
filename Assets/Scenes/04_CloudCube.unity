@@ -283,10 +283,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7163ed4fccb49ae4a948b6cde6d3cf51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeMode: 1
+  volumeMode: 3
+  sphereRadius: 1
   absorptionCoefficient: 0.5
+  scatteringCoefficient: 0.5
+  density: 1
+  phaseAsymmetry: 0.5
   stepSize: 0.2
-  lightDir: {x: 0, y: 1, z: 0}
+  lightDir: {x: 0, y: 1, z: 2}
+  lightIntensity: 10
 --- !u!1 &1922977654
 GameObject:
   m_ObjectHideFlags: 0

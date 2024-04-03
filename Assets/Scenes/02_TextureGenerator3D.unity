@@ -259,10 +259,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71e89409b2f0f68429238b4d93a08cb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureName: HighFrequencyCloudNoise
-  computeTextureMaker: {fileID: 7200000, guid: 36148d3414d429d48a75dce909878de8, type: 3}
+  textureName: Perlin3D
+  computeTextureMaker: {fileID: 7200000, guid: 9055298f5df162d4c94114f6c8180db4, type: 3}
   applyImageEffectTexture3D: {fileID: 320551159}
-  resolution: 32
+  resolution: 256
   genMipMaps: 1
   regenerateTexture: 0
   saveTexture: 0

@@ -19,7 +19,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
 
-    float perlinNoise = perlinNoise_3D_fbm(uvw, .8, 8, 3);
+    // float perlinNoise = perlinNoise_3D_fbm(uvw, .8, 8, 3);
+    float perlinNoise = perlinNoise_3D(uvw, 8);
     perlinNoise = remap_f(perlinNoise, -1.0, 1.0, 0.0, 1.0);
 
     pixel.color = float4(perlinNoise, perlinNoise, perlinNoise, 1.0);

@@ -138,5 +138,4 @@ float3 random_3D(uint i){
     return float3(normalize_ui(r4), normalize_ui(r3), normalize_ui(r2));
 }
 
-
 #endif

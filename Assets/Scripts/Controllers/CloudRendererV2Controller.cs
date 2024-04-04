@@ -6,14 +6,18 @@ public class CloudRendererV2Controller : MonoBehaviour
 {
     public Texture2D cloudMap;
     public Texture2D cloudHeightGradient;
+    public Texture3D lowFrequencyCloudNoise;
+    public Light sun;
     public float atmosphereLow = 1500;
     public float atmosphereHigh = 5000;
     public float noiseTiling = 100;
+    public float cloudMapTiling = 100;
     public float lightIntensity = 1;
+    public int stepCount = 35;
 
-    [Range(0.0f, 3.0f)]
+    [Range(0.0f, 100.0f)]
     public float absorptionCoefficient = 0.5f;
-    [Range(0.0f, 3.0f)]
+    [Range(0.0f, 100.0f)]
     public float scatteringCoefficient = 1.0f;
     [Range(0.0f, 10.0f)]
     public float cloudDensity = 1.0f;
@@ -27,16 +31,21 @@ public class CloudRendererV2Controller : MonoBehaviour
     public Color lightColor = new Color(1, 1, 1, 1);
     [Range(0, 10)]
     public int lightStepCount = 5;
+    public Vector3 lightDir = new Vector3(0, 1, 0);
 
     public bool useHeightGradient = true;
 
+    [Range(0.0f, 1.0f)]
     public float alphaThreshold = 0.1f;
+    public float phaseAsymmetry = 0.0f;
 
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log(sun.transform.forward);
         Shader.SetGlobalTexture("_CloudMap", cloudMap);
         Shader.SetGlobalTexture("_CloudHeightGradient", cloudHeightGradient);
+        Shader.SetGlobalTexture("_LowFrequencyCloudNoise", lowFrequencyCloudNoise);
     }
 
     // Update is called once per frame
@@ -58,5 +67,10 @@ public class CloudRendererV2Controller : MonoBehaviour
         Shader.SetGlobalInt("_UseHeightGradient", useHeightGradient ? 1 : 0);
         Shader.SetGlobalFloat("_AlphaThreshold", alphaThreshold);
         Shader.SetGlobalInt("_LightStepCount", lightStepCount);
+        // Shader.SetGlobalVector("_LightDir", Vector3.Normalize(lightDir));
+        Shader.SetGlobalVector("_LightDir", -sun.transform.forward);
+        Shader.SetGlobalInt("_StepCount", stepCount);
+        Shader.SetGlobalFloat("_CloudMapTiling", cloudMapTiling);
+        Shader.SetGlobalFloat("_PhaseAsymmetry", phaseAsymmetry);
     }
 }

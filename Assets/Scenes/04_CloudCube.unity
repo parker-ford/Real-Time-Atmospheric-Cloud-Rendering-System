@@ -285,13 +285,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   volumeMode: 3
   sphereRadius: 1
-  absorptionCoefficient: 0.5
-  scatteringCoefficient: 0.5
-  density: 1
-  phaseAsymmetry: 0.5
-  stepSize: 0.2
-  lightDir: {x: 0, y: 1, z: 2}
-  lightIntensity: 10
+  absorptionCoefficient: 0.06
+  scatteringCoefficient: 0.96
+  density: 1.65
+  phaseAsymmetry: 0
+  stepSize: 0.114
+  lightDir: {x: 0, y: 1, z: 0}
+  lightIntensity: 28.2
+  denistyField: {fileID: 11700000, guid: a2eca2bc5f62e7c459393b921663cb2a, type: 2}
+  noiseTiling: 2.17
+  transmissionCutoff: 0.6
 --- !u!1 &1922977654
 GameObject:
   m_ObjectHideFlags: 0

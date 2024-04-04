@@ -21,8 +21,14 @@ public class TextureGenerator3D : MonoBehaviour
     public bool saveTexture = false;
 
 
+
+    float remap(float value, float from1, float to1, float from2, float to2){
+        return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+    }
+
     void Start()
     {
+        UnityEngine.Debug.Log(remap(-1.0f, -0.5f, 0.5f, 0, 1));
         GenerateTexture();
     }
 

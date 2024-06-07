@@ -307,7 +307,7 @@ MonoBehaviour:
   computeTextureMaker: {fileID: 7200000, guid: 20ee4a0290af3494cadb334fce9c8af6, type: 3}
   applyImageEffectTexture3D: {fileID: 320551159}
   resolution: 256
-  genMipMaps: 1
+  genMipMaps: 0
   regenerateTexture: 0
   saveTexture: 0
 --- !u!4 &1099298202

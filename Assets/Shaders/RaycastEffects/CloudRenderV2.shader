@@ -17,6 +17,7 @@ Shader "Parker/CloudRenderV2"
 
             #include "UnityCG.cginc"
             #include "../Includes/raycast.cginc"
+            #include "../Includes/noise.cginc"
 
             #define SCALE_TO_EARTH_RADIUS 1
             #define LOW_ATMOSPHERE_RADIUS_HEIGHT 1500.0
@@ -68,19 +69,42 @@ Shader "Parker/CloudRenderV2"
             float _StepSize;
             float _AlphaThreshold;
             float _PhaseAsymmetry;
+            float _CloudFalloff;
+            float _DualHGWeight;
+            float _AmbientStrength;
+            float _MultipleScatteringStrength;
+            float _CloudType;
+            float _StepGrowthRate;
 
             int _LightStepCount;
             int _StepCount;
 
             float3 _LightDir;
-            float3 _CloudColor;
-            float3 _ExtinctionColor;
             float3 _LightColor;
+            float3 _AmbientColor;
 
             int _UseHeightGradient;
 
+            float3 ACESFilm(float3 x) {
+                float a = 2.51f;
+                float b = 0.03f;
+                float c = 2.43f;
+                float d = 0.59f;
+                float e = 0.14f;
+                return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
+            }
+
+            float henyeyGreenstein(float g, float cosTheta) {
+                float gg = g * g;
+                return (1.0 / (4.0 * PI))  * ((1.0 - gg) / pow(1.0 + gg - 2.0 * g * cosTheta, 1.5));
+            }
+            float doubleHenyeyGreenstein(float g, float cosTheta) {
+                return lerp(henyeyGreenstein(-g, cosTheta), henyeyGreenstein(g, cosTheta), _DualHGWeight);
+            }
+   
             float phase(float g, float cosTheta){
-                return 1.0 / (4.0 * PI) * (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosTheta, 1.5);
+                // return henyeyGreenstein(g, cosTheta);
+                return doubleHenyeyGreenstein(g, cosTheta);
             }
 
             float getHeightFract(float3 p){
@@ -95,21 +119,8 @@ Shader "Parker/CloudRenderV2"
                 float4 lowFreqNoise = tex3D(_LowFrequencyCloudNoise, samplePos);
                 float lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
                 float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
-                // float baseCloud = tex3D(_LowFrequencyCloudNoise, samplePos).r;
                 return baseCloud;
-
-                // //if(_BaseCloudMode == 0){
-                // //}
-                // // else if(_BaseCloudMode == 1){
-                // //     float4 lowFreqNoise = tex3D(_LowFrequencyCloudNoise, samplePos);
-                // //     float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
-                // //     baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
-                // // }
-                // // else if(_BaseCloudMode == 2){
-                // //     baseCloud = tex2D(_BaseCloud2D, samplePos.xz).r;
-                // // }
-                // return baseCloud;
-                // return 1.0;
+                // return lowFreqNoise.r;
             }
 
             float sampleCloudMap(float3 pos){
@@ -119,7 +130,7 @@ Shader "Parker/CloudRenderV2"
 
             float sampleHeightGradient(float3 pos){
                 float cloudHeight = getHeightFract(pos);
-                return tex2D(_CloudHeightGradient, float2(0.0, cloudHeight)).r;
+                return tex2D(_CloudHeightGradient, float2(_CloudType + (1.0 / (512.0 * 0.5f)), cloudHeight)).r;
             }
 
             float sampleDensity(float3 pos){
@@ -130,11 +141,43 @@ Shader "Parker/CloudRenderV2"
                 return density;
             }
 
+            float calculateDimensionalProfile(float3 pos){
+                return sampleCloudMap(pos) * sampleHeightGradient(pos) * _CloudDensity;
+            }
+
+            float calculateDensity(float3 pos, float dimensionalProfile){
+                float noise = getBaseCloud(pos);
+                float density = saturate(noise - (1.0 - (dimensionalProfile * _CloudFalloff)));
+                return density;
+            }
+
+            float3 calculateLightEnergy(float3 pos, float cosTheta){
+                float tau = 0.0;
+                [unroll(5)]
+                for(int l = 0; l < 5; l++){
+                    float lightT = _LightStepSize * (l + 0.5);
+                    float3 lightPos = pos + _LightDir * lightT;
+                    float dimensionalProfile = calculateDimensionalProfile(lightPos);
+                    float density = calculateDensity(lightPos, dimensionalProfile);
+                    tau += (density * _ShadowDensity);
+                    // tau += lightDensity *;
+                }
+                float primaryScattering = exp(-(_AbsorptionCoefficient + _ScatteringCoefficient) * tau * _LightStepSize);
+                float phaseTerm = phase(_PhaseAsymmetry, cosTheta);
+
+                return primaryScattering * phaseTerm;
+            }
+
+
             fixed4 frag (v2f i) : SV_Target {
-                fixed4 mainCol = tex2D(_MainTex, i.uv);
+                float3 mainCol = tex2D(_MainTex, i.uv).rgb;
                 float4 blueNoiseSample = sampleBlueNoise(i.uv);
                 float2 pixelOffset = blueNoiseSample.rg;
                 float distanceOffset = blueNoiseSample.b;
+
+                // float test = (float)(_Frame % _NumSuperSamples) / (float)_NumSuperSamples;
+                // return float4(test,test,test,1.0);
+
 
                 Ray ray = getRayFromUV(i.uv, blueNoiseSample.rg, 1);
                 Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereLow : _AtmosphereLow};
@@ -144,201 +187,71 @@ Shader "Parker/CloudRenderV2"
                 SphereHit upperAtmosphereHit = raySphereIntersect(ray, upperAtmosphere);
 
                 if(lowerAtmosphereHit.hit && lowerAtmosphereHit.exit < MAX_VIEW_DISTANCE){
+                    // float stepSize = _StepSize;
+                    // int ns = ceil((upperAtmosphereHit.exit - lowerAtmosphereHit.exit) / stepSize);
+                    // stepSize = (upperAtmosphereHit.exit - lowerAtmosphereHit.exit) / ns;
+
+                    //TODO: move this to CPU
+                    float dist = upperAtmosphereHit.exit - lowerAtmosphereHit.exit;
+                    float n = _RayMarchSteps - 1;
+                    float a = 1.0f - pow(_StepGrowthRate, n + 1);
+                    float b = 1.0f - _StepGrowthRate;
+
+                    
+                    // float stepSize = dist / (a / b);
                     float stepSize = _StepSize;
-                    int ns = ceil((upperAtmosphereHit.exit - lowerAtmosphereHit.exit) / stepSize);
-                    stepSize = (upperAtmosphereHit.exit - lowerAtmosphereHit.exit) / ns;
 
-                    // int ns = _StepCount;
-                    // float stepSize = (upperAtmosphereHit.exit - lowerAtmosphereHit.exit) / (float)ns;
-
-                    float3 lightColor = float3(1, 1, 1);
+                    float frameSegment = (float)(_Frame % _NumSuperSamples) / (float)_NumSuperSamples;
 
                     float transparency = 1.0;
                     float3 result = float3(0, 0, 0);
-
-                    float totalTau_DEBUG = 0.0;
+                    float dimensionalProfile = 0.0;
+                    float3 lightColor = float3(1, 1, 1);
+                    float totalDistance = lowerAtmosphereHit.exit;
 
                     [unroll(50)]
-                    for(int n = 0; n < ns; n++){
-                        float t = lowerAtmosphereHit.exit + stepSize * (n + 0.5);
+                    for(int n = 0; n < _RayMarchSteps; n++){
+                        // float t = lowerAtmosphereHit.exit + stepSize * (n + blueNoiseSample.b);
+                        float t = lowerAtmosphereHit.exit + ((stepSize * n) + (frameSegment * stepSize) + ((stepSize / _NumSuperSamples) * blueNoiseSample.b));
                         float3 pos = ray.origin + ray.direction * t;
-                        float density = sampleDensity(pos);
-                        float sampleAttenuation = exp(-(_AbsorptionCoefficient + _ScatteringCoefficient) * density * stepSize);
-                        transparency *= sampleAttenuation;
 
-                        if(density > 0.001){
-                            float tau = 0.0;
-                            for(int l = 0; l < 5; l++){
-                                float lightT = _LightStepSize * (l + 0.5);
-                                float3 lightPos = pos + _LightDir * lightT;
-                                float lightDensity = sampleDensity(lightPos);
-                                tau += (lightDensity * _ShadowDensity);
-                                totalTau_DEBUG += lightDensity;   
-                            }
-                            float lightAttenuation = exp(-(_AbsorptionCoefficient + _ScatteringCoefficient) * tau * _LightStepSize);
+                        // float3 pos = ray.origin + ray.direction * (totalDistance + frameSegment * stepSize + (stepSize / _NumSuperSamples) * blueNoiseSample.b);
+
+
+                        float dimensionalProfile = calculateDimensionalProfile(pos);
+                        float density = calculateDensity(pos, dimensionalProfile);
+                        if(density > 0.001){    
+
+                            float extinction = (_AbsorptionCoefficient + _ScatteringCoefficient) * density;
+                            float sampleAttenuation = exp(-extinction * stepSize);
+                            
                             float cosTheta = dot(normalize(ray.direction), normalize(_LightDir));
-                            float phaseTerm = phase(_PhaseAsymmetry, cosTheta);
-                            result += transparency * lightAttenuation * lightColor * _ScatteringCoefficient * density * stepSize * _LightIntensity * phaseTerm;
+
+                            // float3 ambientLight = pow(transparency, 0.5) * stepSize; // idk
+                            float3 ambientLight = _AmbientColor * _AmbientStrength * pow(1.0 - dimensionalProfile, 0.5);
+                            float multipleScattering = remap_f(dimensionalProfile * stepSize, 0.1, 1.0, 0.0, 1.0) * _MultipleScatteringStrength;
+                            float3 directLight = _LightColor * calculateLightEnergy(pos, cosTheta) * _LightIntensity;
+                            // float3 directLight = float3(0., 0., 0.);
+
+                            float3 luminance = directLight + ambientLight + multipleScattering;
+
+                            transparency *= sampleAttenuation;
+                            result += transparency * luminance  * _ScatteringCoefficient * density * stepSize;
                         }
-                        
+
+ 
+                        totalDistance += stepSize;
+                        // stepSize *= _StepGrowthRate;
                     }
-                    if((1.0 - transparency) < _AlphaThreshold){
-                        return mainCol;
-                    }
-                    //return lerp(mainCol, float4(1.0, 0, 0, 1.0), saturate(totalTau_DEBUG));
-                    return lerp(mainCol, float4(saturate(result), 1.0), 1.0 - transparency);
+                    mainCol = ACESFilm(mainCol.rgb);
+                    result = ACESFilm(result);
+
+                    return lerp(float4(mainCol, 1.0), float4(result, 1.0), 1.0 - transparency);
                 }
 
-
-
-                return mainCol;
+                mainCol = ACESFilm(mainCol.rgb);
+                return float4(mainCol, 1.0);
             }
-
-
-            // fixed4 frag (v2f i) : SV_Target
-            // {
-            //     fixed4 mainCol = tex2D(_MainTex, i.uv);
-            //     float4 blueNoiseSample = sampleBlueNoise(i.uv);
-            //     float2 pixelOffset = blueNoiseSample.rg;
-            //     float distanceOffset = blueNoiseSample.b;
-
-            //     Ray ray = getRayFromUV(i.uv, blueNoiseSample.rg, 1);
-            //     Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereLow : _AtmosphereLow};
-            //     Sphere upperAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereHigh : _AtmosphereHigh};
-            //     float distPerStep = _StepSize;
-            //     // float distPerStep = (_AtmosphereHigh - _AtmosphereLow) / _RayMarchSteps;
-
-            //     SphereHit lowerAtmosphereHit = raySphereIntersect(ray, lowerAtmosphere);
-            //     SphereHit upperAtmosphereHit = raySphereIntersect(ray, upperAtmosphere);
-
-            //     float currRayDist = 0;
-            //     if (lowerAtmosphereHit.hit && lowerAtmosphereHit.enter < MAX_VIEW_DISTANCE)
-            //     {
-            //         float3 enterPos = ray.origin + ray.direction * lowerAtmosphereHit.enter;
-            //         float3 exitPos = ray.origin + ray.direction * upperAtmosphereHit.enter;
-
-            //         float startDist = lowerAtmosphereHit.enter;
-            //         float endDist = upperAtmosphereHit.enter;
-
-
-            //         // float extinctionCoefficient = _AbsorptionCoefficient + _ScatteringCoefficient;
-            //         // float accumulatedDensity = 0.0;
-            //         // float thickness = 0.0;
-            //         float distanceTraveled = startDist;
-            //         float3 color = float3(0,0,0);
-            //         float alpha = 1.0;
-
-            //         float3 pos = ray.origin + ray.direction * distanceTraveled;
-            //         float v = sampleDensity(pos);
-
-            //         [unroll(100)]
-            //         while(v == 0 && distanceTraveled < endDist){
-            //             distanceTraveled += (2 * distPerStep);
-            //             pos = ray.origin + ray.direction * distanceTraveled;
-            //             v = sampleDensity(pos);
-            //         }
-
-                    
-
-            //         if(v){
-            //             distanceTraveled -= (2 * distPerStep);
-            //             float thickness = 0.0;
-
-            //             color = _CloudColor;
-            //             float extinctionCoefficient = _AbsorptionCoefficient + _ScatteringCoefficient;
-
-            //             float lightDistPerStep = _LightStepSize;
-            //             float accumulatedDensity = 0.0;
-
-            //             uint stepCount = 0;
-            //             [unroll(1)]
-            //             while(stepCount < _RayMarchSteps && distanceTraveled < endDist){
-            //                 pos = ray.origin + ray.direction * distanceTraveled;
-            //                 v = sampleDensity(pos);
-            //                 float sampledDensity = v;
-            //                 accumulatedDensity += sampledDensity * _CloudDensity;
-
-            //                 ++stepCount;
-            //                 distanceTraveled += distPerStep;
-            //                 thickness += sampledDensity * distPerStep;
-            //                 alpha = exp(-thickness * accumulatedDensity * extinctionCoefficient);
-
-            //                 if(v > 0.001){
-            //                     float tau = 0.0f;
-            //                     float lightPos = pos;
-            //                     int lightRayStep = 0;
-            //                     float lightStepSize = _LightStepSize;
-            //                     [unroll(10)]
-            //                     while(lightRayStep < _LightStepCount){
-            //                         tau += v * _ShadowDensity;
-            //                         lightPos -= lightStepSize * float3(0, -1, -1);
-            //                         v = sampleDensity(lightPos);
-            //                         lightRayStep++;
-            //                     }
-
-            //                     float3 lightAttenuation = exp(-(tau / _ExtinctionColor) * extinctionCoefficient * _ShadowDensity);
-            //                     color +=  lightAttenuation * alpha * _ScatteringCoefficient * _CloudDensity * sampledDensity;
-            //                 }
-
-            //                 // if(alpha < _AlphaThreshold){
-            //                 //     break;
-            //                 // }
-            //             }
-            //         }
-
-
-                    
-
-            //     //     [unroll(20)]
-            //     //     for(int rayMarchStep = 0; rayMarchStep < _RayMarchSteps; rayMarchStep++){
-            //     //         float3 pos;
-            //     //         pos = getMarchPosition(ray, lowerAtmosphereHit, rayMarchStep, distPerStep, distanceOffset);
-
-            //     //         float3 samplePos = remap_f3(pos, 0, _NoiseTiling, 0, 1);
-            //     //         samplePos.y = getHeightFract(pos);
-
-            //     //         float sampledDensity = sampleDensity(samplePos);
-
-            //     //         accumulatedDensity += sampledDensity * _CloudDensity;
-            //     //         thickness += sampledDensity * distPerStep;
-            //     //         distance += distPerStep;
-            //     //         alpha = exp(-thickness * accumulatedDensity * extinctionCoefficient);
-
-            //     //         if(sampledDensity > 0.001){
-            //     //             float lightAccumulatedDensity = 0.0;
-            //     //             float3 lightDir = normalize(float3(1, 1, 0));
-            //     //             [unroll(10)]
-            //     //             for(int lightRayStep = 0; lightRayStep < 10; lightRayStep++){
-            //     //                 float3 lightPos = pos + lightDir * (float)lightRayStep * _LightStepSize;
-            //     //                 float3 lightSamplePos = remap_f3(lightPos, 0, _NoiseTiling, 0, 1);
-            //     //                 lightSamplePos.y = getHeightFract(lightPos);
-            //     //                 lightAccumulatedDensity += sampleDensity(lightSamplePos);
-            //     //             }
-            //     //             float lightAttenuation = exp(-(lightAccumulatedDensity) * extinctionCoefficient * _ShadowDensity);
-            //     //             // return float4(lightAttenuation, 1);
-            //     //             color +=  _LightColor * lightAttenuation * alpha * _ScatteringCoefficient * _CloudDensity * sampledDensity * _LightIntensity;
-            //     //             // color += _LightColor * lightAttenuation * alpha * _ScatteringCoefficient * _CloudDensity * sampledDensity;
-            //     //         }
-            //     //     }
-            //     //     alpha = 1 - alpha;
-            //     //     // return lerp(mainCol, float4(0,0,0,1), saturate(alpha));
-            //     //     return lerp(mainCol, float4(saturate(color), 1.0), saturate(alpha));
-
-            //         // if(alpha < _AlphaThreshold){
-            //         //     alpha = 0;
-            //         // }
-            //         color = 1 - color;
-            //         alpha = 1 - alpha;
-            //         color = saturate(color);
-            //         alpha = saturate(alpha);
-            //         // return float4(color, 1.0);
-            //         return lerp(mainCol, float4(color, 1.0), alpha);
-            //         // return lerp(mainCol, float4(1.0,1.0,1.0, 1.0), alpha);
-            //     }
-
-
-            //     return mainCol;
-            // }
             ENDCG
         }
     }

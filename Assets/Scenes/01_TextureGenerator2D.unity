@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 70d84bc6cae724a4cb794c1dd7db0691, type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -228,7 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 154258fdfc7ed8f42a2007636e6db0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  channel: 4
+  channel: 0
 --- !u!1 &474503819
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,6 +335,8 @@ GameObject:
   - component: {fileID: 832411165}
   - component: {fileID: 832411166}
   - component: {fileID: 832411167}
+  - component: {fileID: 832411168}
+  - component: {fileID: 832411169}
   m_Layer: 0
   m_Name: TextureGenerator2D
   m_TagString: Untagged
@@ -370,12 +372,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textureName: CloudMap
-  computeTextureMaker: {fileID: 7200000, guid: 3fb01b3b0f5d8f3419076a88cfae7f85, type: 3}
+  computeTextureMaker: {fileID: 7200000, guid: 48530b2bf789e2945add19ddfc087dd1, type: 3}
   applyImageEffectTexture2D: {fileID: 68210181}
-  resolution: 512
-  genMipMaps: 0
+  resolution: 256
+  genMipMaps: 1
   autoRegenerateTexture: 0
-  regenerateTexture: 0
+  regenerateTexture: 1
   saveTexture: 0
 --- !u!114 &832411166
 MonoBehaviour:
@@ -410,6 +412,79 @@ MonoBehaviour:
   leftTexture: {fileID: 2800000, guid: 3b0fc679888edc34d876915d8d6127b4, type: 2}
   midTexture: {fileID: 2800000, guid: c46eb50b89956de4884dfaa58e2919f3, type: 2}
   rightTexture: {fileID: 2800000, guid: e1666d31c606cea40b2521f89acc44c1, type: 2}
+--- !u!114 &832411168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832411161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d5849c18049c2e448ca14c22e8d390f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 7200000, guid: 21473dafceac5ca43af67ea72be391a5, type: 3}
+  coverage: 0
+--- !u!114 &832411169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832411161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94ba449eec5b59047808fead9b62f824, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 7200000, guid: 3fb01b3b0f5d8f3419076a88cfae7f85, type: 3}
+  perlinFreqency: 4
+  worleyFrequency: 4
+--- !u!1 &1437883073
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1437883075}
+  - component: {fileID: 1437883074}
+  m_Layer: 0
+  m_Name: ScreenShotter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1437883074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1437883073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9485e916814be0743a82a77adeb0c7ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1437883075
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1437883073}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 22.826954, y: 2.5721211, z: 14.690576}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -417,3 +492,4 @@ SceneRoots:
   - {fileID: 68210180}
   - {fileID: 474503821}
   - {fileID: 832411164}
+  - {fileID: 1437883075}

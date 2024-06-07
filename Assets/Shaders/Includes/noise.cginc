@@ -409,10 +409,10 @@ float worleyNoise_3D(float3 p, float cellSize){
     float interval = 1.0 / cellSize;
 
     //Initial min distance
-    float minDist = interval;
+    float minDist = 1000000000;
 
     //Initial cell that point resides in
-    float3 baseCell = floor(p * cellSize) / cellSize;
+    // float3 baseCell = floor(p * cellSize) / cellSize;
 
     //Loop through all surrounding cells
     for(int x = -1; x <= 1; x++){
@@ -420,27 +420,49 @@ float worleyNoise_3D(float3 p, float cellSize){
             for(int z = -1; z <= 1; z++){
 
                 //Get neighboring cell
-                float3 cell = baseCell + float3(float(x) * interval, float(y) * interval, float(z) * interval);
+                // float3 cell = baseCell + float3(float(x) * interval, float(y) * interval, float(z) * interval);
+                float3 cell = floor(p * cellSize) + float3(float(x), float(y), float(z));
 
                 //Wrap cell around edges
-                float3 wrappedCell = modulo(cell, float3(1.0, 1.0, 1.0));
+                float3 wrappedCell = modulo(cell, float3(cellSize, cellSize, cellSize));
 
                 //Generate pseudo random offset based on cell
                 uint seed = seedGen_ui3(uint3(wrappedCell.x * _ScreenParams.x, wrappedCell.y * _ScreenParams.y, wrappedCell.z * _ScreenParams.y));
                 float3 rand = random_3D(seed);
 
                 //Find distance to cell
-                float3 cellPosition = cell + (rand * interval);
-                float3 toCell = cellPosition - p;
-                if(length(toCell) < minDist){
-                    minDist = length(toCell);
-                }
+                // float3 cellPosition = cell + (rand * interval);
+                float3 toCell = (p * cellSize) - cell - rand;
+                minDist = min(minDist, dot(toCell, toCell));
+                // if(length(toCell) < minDist){
+                //     minDist = length(toCell);
+                // }
             }
         }
     }
+    // float maxDist = interval * sqrt(3.0);
+    // float result = minDist / interval;
+    minDist = min(minDist, 1.0);
+    minDist = max(minDist, 0.0);
+    return minDist;
 
-    float result = minDist / interval;
-    return result;
+    // float3 pCell = p * cellSize;
+    // float d = 1000000.0;
+    // for(int x = -1; x <= 1; x++){
+    //     for(int y = -1; y <= 1; y++){
+    //         for(int z = -1; z <= 1; z++){
+    //             float3 tp = floor(pCell) + float3(x, y, z);
+    //             float3 wrappedCell = modulo(tp, float3(cellSize, cellSize, cellSize));
+    //             uint seed = seedGen_ui3(uint3(wrappedCell.x * _ScreenParams.x, wrappedCell.y * _ScreenParams.y, wrappedCell.z * _ScreenParams.y));
+    //             float3 rand = random_3D(seed);
+    //             tp = pCell - tp - rand;
+    //             d = min(d, dot(tp, tp));
+    //         }
+    //     }
+    // }
+    // d = min(d, 1.0);
+    // d = max(d, 0.0);
+    // return d;
 }
 
 float worleyNoise_3D_fbm(float3 p, float H, float freq, float numOctaves){
@@ -516,6 +538,49 @@ float worleyNoise_2D(float2 p, float cellSize, float intervalOffset){
     return result;
 }
 
+float worleyNoise_2D(float2 p, float cellSize, float2 scale, int seedOffset){
+
+    p *= scale;
+
+    //Interval between cells
+    float interval = 1.0 / cellSize;
+
+    //Initial min distance
+    float minDist = interval;
+
+    //Initial cell that point resides in
+    float2 baseCell = floor(p * cellSize) / cellSize;
+
+    //Loop through all surrounding cells
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+
+            //Get neighboring cell
+            float2 cellOffset = float2(float(x) * interval, float(y) * interval);
+            float2 cell = baseCell + cellOffset;
+
+            //Wrap cell around edges
+            // float2 wrappedCell = modulo(cell, float2(1.0, 1.0));
+            float2 wrappedCell = modulo(cell, scale);
+
+            //Generate pseudo random offset based on cell
+            uint seed = seedGen_ui2(uint2(wrappedCell.x * _ScreenParams.x, wrappedCell.y * _ScreenParams.y));
+            float2 rand = random_2D(seed + seedOffset);
+
+            //Find distance to cell
+            float2 cellPosition = cell + (rand * interval);
+            float2 toCell = cellPosition - p;
+            if(length(toCell) < minDist){
+                minDist = length(toCell);
+            }
+        }
+    }
+
+    float result = minDist / interval;
+    return result;
+}
+
+
 float worleyNoise_2D(float2 p, float cellSize){
 
     //Interval between cells
@@ -588,7 +653,7 @@ float worleyNoise_2D_fbm(float2 p, float intervalOffset, float H, float freq, fl
     float a = 1.0;
     float t = 0.0;
     for(int i = 0; i < numOctaves; i++){
-        t += a * worleyNoise_2D(p * f, freq, intervalOffset);
+        t += a * worleyNoise_2D(p * f, freq);
         f *= 2.0;
         a *= G;
     }

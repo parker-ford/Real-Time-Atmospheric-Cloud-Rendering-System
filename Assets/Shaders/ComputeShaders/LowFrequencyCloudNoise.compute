@@ -10,15 +10,33 @@ struct Pixel {
 RWStructuredBuffer<Pixel> pixels;
 float resolution;
 
+float turbulentNoise(float3 pos, float initialFrequency, float roughness, int octaves) {
+    float amplitude = 1.0;
+    float total = 0.0;
+    float frequency = initialFrequency;
+    float maxAmplitude = 0.0;
+
+    for(int i = 0; i < octaves; i++) {
+        total += perlinNoise_3D(pos, frequency) * amplitude;
+        // pos += perlinNoise_3D(pos, frequency);
+        frequency *= 2.0;
+        maxAmplitude += amplitude;
+        amplitude *= roughness;
+    }
+    // return total;
+    return total / maxAmplitude;
+}
+
 float perlinWorleyNoiseSample(float3 uvw, float f, float4 fMult, float2 range){
-    float perlinNoise = perlinNoise_3D(uvw, f);
+    float perlinNoise = turbulentNoise(uvw, f, 0.54, 6);
     perlinNoise = remap_f(perlinNoise, -0.6, 0.6, 0.0, 1.0);
 
     float worleyNoise1 = worleyNoise_3D(uvw, f * fMult.z);
     worleyNoise1 = 1.0 - worleyNoise1;
     worleyNoise1 *= -0.1;
 
-    float perlinWorleyNoise = remap_f(perlinNoise, worleyNoise1, 1.0, 0.0, 1.0);
+    float perlinWorleyNoise = perlinNoise;
+    perlinWorleyNoise = remap_f(perlinNoise, worleyNoise1, 1.0, 0.0, 1.0);
 
     float worleyNoise2 = worleyNoise_3D(uvw, f * fMult.w);
     worleyNoise2 = 1.0 - worleyNoise2;
@@ -26,10 +44,11 @@ float perlinWorleyNoiseSample(float3 uvw, float f, float4 fMult, float2 range){
 
     perlinWorleyNoise = remap_f(perlinWorleyNoise, worleyNoise2, 1.0, 0.0, 1.0);
 
+
     float worleyNoise3 = worleyNoise_3D(uvw, f * fMult.x);
     worleyNoise3 *= 0.5f;
 
-    perlinWorleyNoise = remap_f(perlinWorleyNoise, worleyNoise3, 1.0, 0.0, 1.0);
+    perlinWorleyNoise = remap_f(perlinWorleyNoise, worleyNoise3, 1.0, 0.5, 1.0);
 
     float worleyNoise4 = worleyNoise_3D(uvw, f * fMult.y);
     worleyNoise4 *= 0.2f;
@@ -77,30 +96,25 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float perlinWorleyFreq = 5.0;
     float4 fMult = float4(2.0, 4.0, 17.0, 33.0);
     float2 range = float2(-0.1, 1.1);
-    float r = perlinWorleyNoiseSample(uvw, perlinWorleyFreq, fMult, range);
-    r = (r + 1.0) / 2.0;
+    // float r = perlinWorleyNoiseSample(uvw, perlinWorleyFreq, fMult, range);
+    float r = octaveWorleyNoise(uvw, 0.5, float2(0.5, 1.0));
 
     float worleyFreq1 = 1.0;
-    float2 worleyRange1 = float2(0.75, 1.0);
+    float2 worleyRange1 = float2(0.5, 1.0);
     float b = octaveWorleyNoise(uvw, worleyFreq1, worleyRange1);
-    b = (b + 1.0) / 2.0;
 
     float worleyFreq2 = 1.7;
-    float2 worleyRange2 = float2(0.75, 1.0);
+    float2 worleyRange2 = float2(0.5, 1.0);
     float g = octaveWorleyNoise(uvw, worleyFreq2, worleyRange2);
-    g = (g + 1.0) / 2.0;
 
     float worleyFreq3 = 2.2;
-    float2 worleyRange3 = float2(0.75, 1.0);
+    float2 worleyRange3 = float2(0.5, 1.0);
     float a = octaveWorleyNoise(uvw, worleyFreq3, worleyRange3);
-    a = (a + 1.0) / 2.0;
 
 
-    // float col = r;
+    // float col = a;
     // pixel.color = float4(col, col, col, 1.0);
     pixel.color = float4(r, g, b, a);
-
-
 
 
     pixels[id.x + id.y * resolution + id.z * resolution * resolution] = pixel;

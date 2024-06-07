@@ -10,6 +10,71 @@ struct Pixel {
 RWStructuredBuffer<Pixel> pixels;
 float resolution;
 
+float worleyNoiseSmooth_2D(float2 p, float cellSize){
+
+    //Interval between cells
+    float interval = 1.0 / cellSize;
+
+    //Initial min distance
+    float minDist = interval;
+
+    //Initial cell that point resides in
+    float2 baseCell = floor(p * cellSize) / cellSize;
+
+    //Loop through all surrounding cells
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+
+            //Get neighboring cell
+            float2 cellOffset = float2(float(x) * interval, float(y) * interval);
+            float2 cell = baseCell + cellOffset;
+
+            //Wrap cell around edges
+            float2 wrappedCell = modulo(cell, float2(1.0, 1.0));
+
+            //Generate pseudo random offset based on cell
+            uint seed = seedGen_ui2(uint2(wrappedCell.x * _ScreenParams.x, wrappedCell.y * _ScreenParams.y));
+            float2 rand = random_2D(seed);
+
+            //Find distance to cell
+            float2 cellPosition = cell + (rand * interval);
+            float2 toCell = cellPosition - p;
+            if(length(toCell) < minDist){
+                minDist = length(toCell);
+            }
+        }
+    }
+//
+    float result = smoothstep(0.0, 1.0, minDist / interval);
+    return result;
+}
+
+
+float octaveWorleyNoise(float3 uvw, float baseFreq, float2 range){
+    float worleyNoise1 = worleyNoise_3D(uvw, baseFreq * 19);
+    worleyNoise1 /= 3.0;
+
+    float worleyNoise2 = worleyNoise_3D(uvw, baseFreq * 10);
+
+    float worleyNoise3 = worleyNoise_3D(uvw, baseFreq * 25);
+    worleyNoise3 /= 6.0;
+
+    float worleyNoise4 = worleyNoise_3D(uvw, baseFreq * 37);
+    worleyNoise4 /= 8.0;
+
+    float worleyNoise5 = worleyNoise_3D(uvw, baseFreq * 5);
+    worleyNoise5 /= 3.0;
+
+    float worleyNoise = worleyNoise1 + worleyNoise2 + worleyNoise3 + worleyNoise4 + worleyNoise5;
+    worleyNoise /= 5.0;
+
+    worleyNoise = 1.0 - worleyNoise;
+
+    worleyNoise = remap_f(worleyNoise, range.x, range.y, 0.0, 1.0);
+
+    return worleyNoise;
+}
+
 
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -18,31 +83,57 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     Pixel pixel = pixels[id.x + id.y * resolution];
 
-    float perlinNoise0 = perlinNoise_2D_fbm(uv, .8, 4, 7);
-    float perlinNoise1 = perlinNoise_2D_fbm(uv, .8, 8, 7);
-    float perlinNoise2 = perlinNoise_2D_fbm(uv, .8, 16, 7);
-    float perlinNoise3 = perlinNoise_2D_fbm(uv, .8, 32, 7);
+    //Past Cloud Map
+    // float perlinNoise0 = perlinNoise_2D_fbm(uv, .8, 4, 7);
+    // float perlinNoise1 = perlinNoise_2D_fbm(uv, .8, 8, 7);
+    // float perlinNoise2 = perlinNoise_2D_fbm(uv, .8, 16, 7);
+    // float perlinNoise3 = perlinNoise_2D_fbm(uv, .8, 32, 7);
 
-    // perlinNoise0 = remap_f(perlinNoise0, -1.0, 1.0, 0.0, 1.0);
-    perlinNoise1 = remap_f(perlinNoise1, -1.0, 1.0, 0.0, 1.0);
-    perlinNoise2 = remap_f(perlinNoise2, -1.0, 1.0, 0.0, 1.0);
-    perlinNoise3 = remap_f(perlinNoise3, -1.0, 1.0, 0.0, 1.0);
+    // // perlinNoise0 = remap_f(perlinNoise0, -1.0, 1.0, 0.0, 1.0);
+    // perlinNoise1 = remap_f(perlinNoise1, -1.0, 1.0, 0.0, 1.0);
+    // perlinNoise2 = remap_f(perlinNoise2, -1.0, 1.0, 0.0, 1.0);
+    // perlinNoise3 = remap_f(perlinNoise3, -1.0, 1.0, 0.0, 1.0);
 
-    float perlinCoverage = 1.0;
-    float perlinWorleyCoverage = 1.0;
-    float perlinNoise = perlinNoise0;
+    // float perlinCoverage = 1.0;
+    // float perlinWorleyCoverage = 1.0;
+    // float perlinNoise = perlinNoise0;
 
-    perlinCoverage = remap_f(perlinNoise, 0.0, 0.3, 1.0, 0.0);
+    // perlinCoverage = remap_f(perlinNoise, 0.0, 0.3, 1.0, 0.0);
 
-    float perlinFBM = ((1.0 - perlinNoise1) * 0.625) + ((1.0 - perlinNoise2) * 0.25) + ((1.0 - perlinNoise3) * 0.125);
-    // perlinCoverage = remap_f(perlinCoverage, (1.0 - perlinFBM), 1.0, 0.0, 1.0);
+    // float perlinFBM = ((1.0 - perlinNoise1) * 0.625) + ((1.0 - perlinNoise2) * 0.25) + ((1.0 - perlinNoise3) * 0.125);
+    // // perlinCoverage = remap_f(perlinCoverage, (1.0 - perlinFBM), 1.0, 0.0, 1.0);
 
-    //float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
-    //float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
-    perlinCoverage *= perlinFBM * 0.5;
-    pixel.color = float4(perlinCoverage, 0, 0, 1);
-    // pixel.color = float4(perlinCoverage, perlinNoise2, 0, 1);
+    // //float3 lowFreqFBM = (lowFreqNoise.g * 0.625) + (lowFreqNoise.b * 0.25) + (lowFreqNoise.a * 0.125);
+    // //float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+    // perlinCoverage *= perlinFBM * 0.5;
+    // pixel.color = float4(perlinCoverage, 0, 0, 1);
+    // // pixel.color = float4(perlinCoverage, perlinNoise2, 0, 1);
 
+    // float perlinNoise = perlinNoise_2D_fbm(uv, .75, 3, 2);
+    // perlinNoise = remap_f(perlinNoise, -1.0, 1.0, 0.0, 0.9);
+    // // perlinNoise = 0;
+
+    // float2 uvScale = float2(2.0, 1.0);
+    // float worleyNoise = worleyNoise_2D(float2 ((uv.x) + perlinNoise * 0.1, (uv.y) + perlinNoise * 0.2 ), 4.0, uvScale, 125);
+    // worleyNoise = 1.0 - worleyNoise;
+
+    // float val = worleyNoise;
+    // val = remap_f(val, 0.6, 0.8, 0.0, 1.0);
+    // float perlinNoise = perlinNoise_2D_fbm(uv, .75, 2, 1);
+    // float worleyNoise = worleyNoiseSmooth_2D(uv + float2(perlinNoise * 0.00, perlinNoise * 0.0), 6.0);
+
+    // float val = 1.0 - worleyNoise;
+
+    float worleyFreq1 = 1.0;
+    float2 worleyRange1 = float2(0.5, 1.0);
+    float worleyNoise = octaveWorleyNoise(float3(uv, 0.05), worleyFreq1, worleyRange1);
+
+    float val = worleyNoise;
+
+    val = remap_f(val, -0.5, 1.0, 0.0, 1.0);
+
+
+    pixel.color = float4(val, val, val, 1);
 
     pixels[id.x + id.y * resolution] = pixel;
 }

@@ -10,6 +10,24 @@ struct Pixel {
 RWStructuredBuffer<Pixel> pixels;
 float resolution;
 
+float turbulentNoise(float3 pos, float initialFrequency, float roughness, int octaves) {
+    float amplitude = 1.0;
+    float total = 0.0;
+    float frequency = initialFrequency;
+    float maxAmplitude = 0.0;
+
+    for(int i = 0; i < octaves; i++) {
+        total += perlinNoise_3D(pos, frequency) * amplitude;
+        // pos += perlinNoise_3D(pos, frequency);
+        frequency *= 2.0;
+        maxAmplitude += amplitude;
+        amplitude *= roughness;
+    }
+    // return total;
+    return total / maxAmplitude;
+}
+
+
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -20,10 +38,24 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
     // float perlinNoise = perlinNoise_3D_fbm(uvw, .8, 8, 3);
-    float perlinNoise = perlinNoise_3D(uvw, 8);
-    perlinNoise = remap_f(perlinNoise, -1.0, 1.0, 0.0, 1.0);
+    // float perlinNoise = perlinNoise_2D_fbm(uv, .8, 6, 8);
+    // perlinNoise = remap_f(perlinNoise, 0.0, 1.0, 0.0, 1.0);
 
-    pixel.color = float4(perlinNoise, perlinNoise, perlinNoise, 1.0);
+    // float perlinNoise = turbulentNoise(uvw, 4, 0.54, 6);
+
+    float perlinNoise1 = perlinNoise_3D_fbm(uvw, 0.8, 4, 6);
+    perlinNoise1 = remap_f(perlinNoise1, -1.0, 1.0, 0.0, 1.0);
+
+    float perlinNoise2 = perlinNoise_3D_fbm(uvw, 0.8, 8, 6);
+    perlinNoise2 = remap_f(perlinNoise2, -1.0, 1.0, 0.0, 1.0);
+
+    float perlinNoise3 = perlinNoise_3D_fbm(uvw, 0.8, 16, 6);
+    perlinNoise3 = remap_f(perlinNoise3, -1.0, 1.0, 0.0, 1.0);
+
+    float perlinNoise4 = perlinNoise_3D_fbm(uvw, 0.8, 32, 6); 
+    perlinNoise4 = remap_f(perlinNoise4, -1.0, 1.0, 0.0, 1.0);
+
+    pixel.color = float4(perlinNoise1, perlinNoise2, perlinNoise3, perlinNoise4);
 
     pixels[id.x + id.y * resolution + id.z * resolution * resolution] = pixel;
 }

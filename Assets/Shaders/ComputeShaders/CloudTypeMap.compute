@@ -1,0 +1,131 @@
+#pragma kernel CSMain
+
+#include "UnityCG.cginc"
+#include "../Includes/noise.cginc"
+#include "../Includes/common.cginc"
+
+struct Pixel {
+    float4 color;
+};
+
+float octaveWorleyNoise(float2 uv, float baseFreq, float2 range){
+    float worleyNoise1 = worleyNoise_2D(uv, baseFreq * 19);
+    worleyNoise1 /= 3.0;
+
+    float worleyNoise2 = worleyNoise_2D(uv, baseFreq * 10);
+
+    float worleyNoise3 = worleyNoise_2D(uv, baseFreq * 25);
+    worleyNoise3 /= 6.0;
+
+    float worleyNoise4 = worleyNoise_2D(uv, baseFreq * 37);
+    worleyNoise4 /= 8.0;
+
+    float worleyNoise5 = worleyNoise_2D(uv, baseFreq * 5);
+    worleyNoise5 /= 3.0;
+
+    float worleyNoise = worleyNoise1 + worleyNoise2 + worleyNoise3 + worleyNoise4 + worleyNoise5;
+    worleyNoise /= 5.0;
+
+    worleyNoise = 1.0 - worleyNoise;
+
+    worleyNoise = remap_f(worleyNoise, range.x, range.y, 0.0, 1.0);
+
+    return worleyNoise;
+}
+
+
+float worleyNoiseSmooth_2D(float2 p, float cellSize){
+
+    //Interval between cells
+    float interval = 1.0 / cellSize;
+
+    //Initial min distance
+    float minDist = interval;
+
+    //Initial cell that point resides in
+    float2 baseCell = floor(p * cellSize) / cellSize;
+
+    //Loop through all surrounding cells
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+
+            //Get neighboring cell
+            float2 cellOffset = float2(float(x) * interval, float(y) * interval);
+            float2 cell = baseCell + cellOffset;
+
+            //Wrap cell around edges
+            float2 wrappedCell = modulo(cell, float2(1.0, 1.0));
+
+            //Generate pseudo random offset based on cell
+            uint seed = seedGen_ui2(uint2(wrappedCell.x * _ScreenParams.x, wrappedCell.y * _ScreenParams.y));
+            float2 rand = random_2D(seed);
+
+            //Find distance to cell
+            float2 cellPosition = cell + (rand * interval);
+            float2 toCell = cellPosition - p;
+            if(length(toCell) < minDist){
+                minDist = length(toCell);
+            }
+        }
+    }
+//
+    float result = smoothstep(0.0, 1.0, minDist / interval);
+    return result;
+}
+
+RWStructuredBuffer<Pixel> pixels;
+float resolution;
+
+float _WorleyFrequency;
+
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) / resolution;
+    
+    Pixel pixel = pixels[id.x + id.y * resolution];
+
+
+    // float worley = worleyNoise_2D_fbm(uv, 0.0, 1.25, 6.0, 4.0);
+    // worley = 1.0 - worley;
+
+    // float worley = (1.0 - worleyNoise_2D(uv, 4.0)) * 0.75;
+    // worley += ((1.0 - worleyNoise_2D(uv, 6.0)) * 0.5) - 0.25;
+    // worley += ((1.0 - worleyNoise_2D(uv, 8.0)) * 0.25) - 0.125;
+    // float innerRadius = 0.0;
+    // float outerRadius = 0.1;
+    // float val = 0;
+    // for(uint i = 0; i < 20; i++){
+    //     float2 r = random_2D(i);
+    //     float dist = distance(float2(uv.x, uv.y), r);
+    //     val += smoothstep(0.0, 1.0, 1.0 - (dist - innerRadius) / (outerRadius - innerRadius));
+    // }
+
+    // float worley1 = worleyNoiseSmooth_2D(uv, 5.0) / 0.5 + worleyNoiseSmooth_2D(uv, 8.0) / 2.0 + worleyNoiseSmooth_2D(uv, 14.0) / 4.0;
+    // float worley2 = worleyNoiseSmooth_2D(uv, 10.0) / 0.5 + worleyNoiseSmooth_2D(uv, 15.0) / 2.0 + worleyNoiseSmooth_2D(uv, 25.0) / 4.0;
+    // float worley3 = worleyNoiseSmooth_2D(uv, 20.0) / 0.5 + worleyNoiseSmooth_2D(uv, 30.0) / 2.0 + worleyNoiseSmooth_2D(uv, 50.0) / 4.0;
+
+    // float val1 = 1.0 - worley1;
+    // float val2 = 1.0 - worley2;
+    // float val3 = 1.0 - worley3;
+
+    float worley = worleyNoiseSmooth_2D(uv, _WorleyFrequency);
+
+    worley = worleyNoise_2D_fbm(uv, 1.0, 6.0, 4.0);
+
+    // float worley2 = worleyNoiseSmooth_2D(uv, _WorleyFrequency *);
+    float worley2 = worleyNoise_2D_fbm(uv, 1.0, 6.0 * 2, 4.0);
+
+    float worley3 = worleyNoise_2D_fbm(uv, 1.0, 6.0 * 4, 4.0);
+
+    float fbm = worley * 0.625 + worley2 * 0.25 + worley3 * 0.125;
+
+    float val = 1.0 - fbm;
+    // val = pow(val, 0.9);
+
+
+    pixel.color = float4(val, val, val, 1.0f);
+
+    pixels[id.x + id.y * resolution] = pixel;
+}

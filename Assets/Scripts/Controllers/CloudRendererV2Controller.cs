@@ -4,40 +4,52 @@ using UnityEngine;
 
 public class CloudRendererV2Controller : MonoBehaviour
 {
+    [Header("Textures")]
     public Texture2D cloudMap;
-    public Texture2D cloudHeightGradient;
+    public float cloudMapTiling = 100;
     public Texture3D lowFrequencyCloudNoise;
-    public Light sun;
+    public float noiseTiling = 100;
+    public Texture2D cloudHeightGradient;
+    [Header("Atmosphere")]
     public float atmosphereLow = 1500;
     public float atmosphereHigh = 5000;
-    public float noiseTiling = 100;
-    public float cloudMapTiling = 100;
-    public float lightIntensity = 1;
-    public int stepCount = 35;
 
-    [Range(0.0f, 100.0f)]
+    [Header("Cloud Properties")]
+    [Range(0.0f, 1.0f)]
     public float absorptionCoefficient = 0.5f;
-    [Range(0.0f, 100.0f)]
+    [Range(0.0f, 1.0f)]
     public float scatteringCoefficient = 1.0f;
-    [Range(0.0f, 10.0f)]
+    [Range(0.0f, 1.0f)]
     public float cloudDensity = 1.0f;
     [Range(0.0f, 10.0f)]
     public float shadowDensity = 1.0f;
-    public float lightStepSize = 10;
+    [Range(0.0f, 1.0f)]
+    public float cloudType = 0f;
+    public float cloudFalloff = 1.0f;
     public float stepSize = 20;
+    [Range(1.00001f, 2.0f)]
+    public float stepGrowthRate = 1.5f;
 
-    public Color cloudColor = new Color(1, 1, 1, 1);
-    public Color extinctionColor = new Color(1, 1, 1, 1);
+
+    [Header("Lighting")]
+    public Light sun;
+    public float lightIntensity = 1;
+    public float lightStepSize = 10;
     public Color lightColor = new Color(1, 1, 1, 1);
+    public Color ambientColor = new Color(1, 1, 1, 1);
+    public float ambientStrength = 1.0f;
+    public float multipleScatteringStrength = 1.0f;
     [Range(0, 10)]
     public int lightStepCount = 5;
-    public Vector3 lightDir = new Vector3(0, 1, 0);
-
-    public bool useHeightGradient = true;
-
-    [Range(0.0f, 1.0f)]
-    public float alphaThreshold = 0.1f;
     public float phaseAsymmetry = 0.0f;
+    [Range(0.0f, 1.0f)]
+    public float dualHGWeight = 0.0f;
+
+
+
+
+    // [Range(0.0f, 1.0f)]
+    // public float alphaThreshold = 0.1f;
 
     // Start is called before the first frame update
     void Start()
@@ -60,17 +72,19 @@ public class CloudRendererV2Controller : MonoBehaviour
         Shader.SetGlobalFloat("_CloudDensity", cloudDensity);
         Shader.SetGlobalFloat("_ShadowDensity", shadowDensity);
         Shader.SetGlobalFloat("_LightStepSize", lightStepSize);
-        Shader.SetGlobalColor("_CloudColor", cloudColor);
-        Shader.SetGlobalColor("_ExtinctionColor", extinctionColor);
         Shader.SetGlobalColor("_LightColor", lightColor);
+        Shader.SetGlobalColor("_AmbientColor", ambientColor);
         Shader.SetGlobalFloat("_StepSize", stepSize);
-        Shader.SetGlobalInt("_UseHeightGradient", useHeightGradient ? 1 : 0);
-        Shader.SetGlobalFloat("_AlphaThreshold", alphaThreshold);
+        // Shader.SetGlobalFloat("_AlphaThreshold", alphaThreshold);
         Shader.SetGlobalInt("_LightStepCount", lightStepCount);
-        // Shader.SetGlobalVector("_LightDir", Vector3.Normalize(lightDir));
         Shader.SetGlobalVector("_LightDir", -sun.transform.forward);
-        Shader.SetGlobalInt("_StepCount", stepCount);
         Shader.SetGlobalFloat("_CloudMapTiling", cloudMapTiling);
         Shader.SetGlobalFloat("_PhaseAsymmetry", phaseAsymmetry);
+        Shader.SetGlobalFloat("_CloudFalloff", cloudFalloff);
+        Shader.SetGlobalFloat("_DualHGWeight", dualHGWeight);
+        Shader.SetGlobalFloat("_AmbientStrength", ambientStrength);
+        Shader.SetGlobalFloat("_MultipleScatteringStrength", multipleScatteringStrength);
+        Shader.SetGlobalFloat("_CloudType", cloudType);
+        Shader.SetGlobalFloat("_StepGrowthRate", stepGrowthRate);
     }
 }

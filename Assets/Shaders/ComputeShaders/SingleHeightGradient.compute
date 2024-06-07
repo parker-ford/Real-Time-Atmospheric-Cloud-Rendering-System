@@ -1,5 +1,7 @@
 #pragma kernel CSMain
+#include "UnityCG.cginc"
 #include "../Includes/common.cginc"
+#include "../Includes/noise.cginc"
 
 struct Pixel {
     float4 color;
@@ -11,6 +13,19 @@ float offset;
 float spread;
 float upperSlope;
 float lowerSlope;
+
+float calculateHeightGradient(float a, float b, float c, float height){
+    float val = 0;
+    val = remap_f(height, 0.0, a, 0.0, 1.0);
+    val *= remap_f(height, b, c, 1.0, 0.0);
+    return val;
+}
+
+float rateChange(float y){
+    float noise = perlinNoise_2D_fbm(float2(0, y), 0.8, 0.5, 3);
+    noise = remap_f(noise, 0, 1.0, 0.0, 1.0);
+    return y + noise;
+}
 
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -27,10 +42,64 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     // else{
     //     val = exp((-1.0/2.0) * pow(abs((uv.y - offset)/spread), 2.0 * lowerSlope));
     // }
-    float val = 0;
-    float height = uv.y;
-    val = remap_f(height, 0.0, 0.1, 0.0, 1.0);
-    val *= remap_f(height, 0.1, 0.2, 1.0, 0.0);
+
+
+    float stratusA = 0.1;
+    float stratusB = 0.05;
+    float stratusC = 0.2;
+
+    float statusVal = calculateHeightGradient(stratusA, stratusB, stratusC, uv.y);
+
+
+    float cumulusA = 0.15;
+    float cumulusB = 0.3;
+    float cumulusC = 0.9;
+
+    float cumulusVal = calculateHeightGradient(cumulusA, cumulusB, cumulusC, uv.y);
+
+    float mid = 0.5;
+
+
+    // float val = 0;
+    // float noise =  0.0f * perlinNoise_2D(float2(uv.x,uv.y), 6.0);
+    // if(uv.x < mid){
+    //     val = lerp(statusVal, stratoCumulusVal, (uv.x / mid));
+    // }
+    // else{
+    //     val = lerp(stratoCumulusVal, cumulusVal, ((uv.x - mid) / (1 - mid)));
+    // }
+
+    // val += noise;
+
+    // float mix  = smoothstep(0.0, 1.0, uv.x);
+    float mix = pow(uv.x, 0.75);
+
+    float noise = 0;
+    noise += remap_f(sin(uv.x * 5), -1.0, 1.0, 0.0, 0.1);
+    noise += remap_f(sin((uv.x ) * 10), -1.0, 1.0, 0.0, 0.1);
+    noise += remap_f(sin((uv.x ) * 20), -1.0, 1.0, -0.05, 0.05);
+    noise += remap_f(cos((uv.x ) * 40), -1.0, 1.0, -0.04, 0.04);
+    noise += remap_f(sin((uv.x ) * 80), -1.0, 1.0, -0.03, 0.03);
+    noise += remap_f(cos((uv.x ) * 160), -1.0, 1.0, -0.02, 0.02);
+    noise *= 0.0;
+    // noise = noise + (sin(uv.x * 25.0 * 2.0) * 0.0075);
+    // noise = noise + (sin(uv.x * 25.0 * PI) * 0.01)
+    // noise = noise + ((sin(uv.x * 30.0) + 1.0) / 2.0 * 0.075);
+
+    float a = lerp(stratusA, cumulusA, uv.x);
+    float b = lerp(stratusB, cumulusB, uv.x);
+    float c = lerp(stratusC, cumulusC, mix + (noise));
+
+    float val = calculateHeightGradient(a, b, c, pow(uv.y, 1.0));
+    // float val = calculateHeightGradient(stratusA, stratusB, stratusC, uv.y);
+    // float val = calculateHeightGradient(cumulusA, cumulusB, cumulusC, uv.y);
+
+    // val = pow(val, 1.5);
+
+    // val = calculateHeightGradient(0.01, 0.05, 0.1, uv.y);
+    // val = remap_f(uv.y, 0.0, 0.1, 0.0, 1.0);
+
+
 
     pixel.color = float4(val, val, val, 1);
 

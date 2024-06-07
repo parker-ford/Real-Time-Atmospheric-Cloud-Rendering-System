@@ -51,6 +51,7 @@ public class TextureGenerator2D : MonoBehaviour
     }
 
     private void PixelArrayToTexture(){
+        Destroy(texture);
         texture = new Texture2D(resolution, resolution, TextureFormat.RGBA32, genMipMaps);
         texture.filterMode = FilterMode.Point;
         

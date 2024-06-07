@@ -1,0 +1,303 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!181963792 &2655988077585873504
+Preset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GoodCircle
+  m_TargetType:
+    m_NativeTypeID: 114
+    m_ManagedTypePPtr: {fileID: 11500000, guid: d09b3e4d4ba0b4f48aad9d666621d580, type: 3}
+    m_ManagedTypeFallback: 
+  m_Properties:
+  - target: {fileID: 0}
+    propertyPath: m_Enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorHideFlags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorClassIdentifier
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: renderCloudsCompute
+    value: 
+    objectReference: {fileID: 7200000, guid: a03354824cdecff439fa393f9369409d, type: 3}
+  - target: {fileID: 0}
+    propertyPath: cloudAccumulatorCompute
+    value: 
+    objectReference: {fileID: 7200000, guid: 28e259bd30fc9e44e85c964613c1f243, type: 3}
+  - target: {fileID: 0}
+    propertyPath: cloudCompositerShader
+    value: 
+    objectReference: {fileID: 4800000, guid: 766c3e3e244f8654e883673092e1ec13, type: 3}
+  - target: {fileID: 0}
+    propertyPath: resolutionScale
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: debugTexture
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: debugDensity
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: debugLighting
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: debugType
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: rayMarchSteps
+    value: 150
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: pixelOffsetType
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: pixelOffsetWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: blueNosieOffsetWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: marchDistanceOffsetWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: useRayMarchOffset
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: numSuperSamples
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lowerRadius
+    value: 100
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: upperRadius
+    value: 509.3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudMap
+    value: 
+    objectReference: {fileID: 2800000, guid: 38e5cf5bf60de294ebbce33c2e34b283, type: 2}
+  - target: {fileID: 0}
+    propertyPath: cloudMapTiling
+    value: 2235
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudMapOffset.x
+    value: 801.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudMapOffset.y
+    value: 153.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudCoverage
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudMapModifier
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: singleCloudHeightGradient
+    value: 
+    objectReference: {fileID: 2800000, guid: 624528762e00a5e45a700883f36e88e8, type: 2}
+  - target: {fileID: 0}
+    propertyPath: cloudHeightGradient
+    value: 
+    objectReference: {fileID: 2800000, guid: 7c341d0ce987b5643916b88a50fc7dbe, type: 2}
+  - target: {fileID: 0}
+    propertyPath: cloudTypeMap
+    value: 
+    objectReference: {fileID: 2800000, guid: 58526891d348550419948f519a647ebe, type: 2}
+  - target: {fileID: 0}
+    propertyPath: globalCloudType
+    value: 0.555
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: globalMinCloudType
+    value: 0.069
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: globalMaxCloudType
+    value: 0.076
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudTypeMapTiling
+    value: 669.1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudTypeModifier
+    value: 0.135
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lowFreqCloudNoise
+    value: 
+    objectReference: {fileID: 11700000, guid: fd311b350af04f04d8cedc415b6bed0e, type: 2}
+  - target: {fileID: 0}
+    propertyPath: wispyNoise
+    value: 
+    objectReference: {fileID: 11700000, guid: 118b5697fcb594a43b9b97bd57962f1c, type: 2}
+  - target: {fileID: 0}
+    propertyPath: lowFreqCloudNoiseTiling
+    value: 300
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: noiseModifier
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudDensity
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: scatteringCoefficient
+    value: 0.55
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: absorptoinCoefficient
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: shadowDensity
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: cloudFalloff
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: windDirection.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: windDirection.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: windDirection.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: windSpeed
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lightIntensity
+    value: 14.5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lightColor.r
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lightColor.g
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lightColor.b
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lightColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: lightStepSize
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: ambientStrength
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: ambientColor.r
+    value: 0.6039216
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: ambientColor.g
+    value: 0.6039216
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: ambientColor.b
+    value: 0.67058825
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: ambientColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: multipleScatteringStrength
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: dualHGWeight
+    value: 0.7
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: phaseAsymmetry
+    value: 0.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: depthFogDensity
+    value: 0.0004
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: depthFogOffset
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: exposure
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: contrast
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: linearMidPoint
+    value: 0.5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: brightness
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: saturation
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: toneMapper
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: p
+    value: 3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hiVal
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gamma
+    value: 1
+    objectReference: {fileID: 0}
+  m_ExcludedProperties: []

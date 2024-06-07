@@ -8,6 +8,12 @@ sampler2D _BlueNoiseTexture;
 sampler2D _BlueNoiseTexture0;
 sampler2D _BlueNoiseTexture1;
 sampler2D _BlueNoiseTexture2;
+
+Texture2D _BlueNoiseTextureCompute;
+Texture2D _BlueNoiseTextureCompute0;
+Texture2D _BlueNoiseTextureCompute1;
+Texture2D _BlueNoiseTextureCompute2;
+
 int _RaycastBitMask;
 float _RayMarchSteps;
 float _RayMarchDistanceOffsetWeight;
@@ -58,6 +64,15 @@ float4 sampleBlueNoise(float2 uv){
     float sample0 = tex2D(_BlueNoiseTexture0, pixel);
     float sample1 = tex2D(_BlueNoiseTexture1, pixel);
     float sample2 = tex2D(_BlueNoiseTexture2, pixel);
+
+    return float4(sample0, sample1, sample2, 1.0);
+}
+
+float4 sampleBlueNoiseCompute(float2 uv, SamplerState samplerState){
+    float2 pixel = uv;
+    float sample0 = _BlueNoiseTextureCompute0.SampleLevel(samplerState, pixel, 0).r;
+    float sample1 = _BlueNoiseTextureCompute1.SampleLevel(samplerState, pixel, 0).r;
+    float sample2 = _BlueNoiseTextureCompute2.SampleLevel(samplerState, pixel, 0).r;
 
     return float4(sample0, sample1, sample2, 1.0);
 }

@@ -10,6 +10,134 @@ struct Pixel {
 RWStructuredBuffer<Pixel> pixels;
 float resolution;
 
+float worleyNoiseSmooth_2D(float2 p, float cellSize, uint seedOffset){
+
+    //Interval between cells
+    float interval = 1.0 / cellSize;
+
+    //Initial min distance
+    float minDist = interval;
+
+    //Initial cell that point resides in
+    float2 baseCell = floor(p * cellSize) / cellSize;
+
+    //Loop through all surrounding cells
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+
+            //Get neighboring cell
+            float2 cellOffset = float2(float(x) * interval, float(y) * interval);
+            float2 cell = baseCell + cellOffset;
+
+            //Wrap cell around edges
+            float2 wrappedCell = modulo(cell, float2(1.0, 1.0));
+
+            //Generate pseudo random offset based on cell
+            uint seed = seedGen_ui2(uint2(wrappedCell.x * _ScreenParams.x, wrappedCell.y * _ScreenParams.y));
+            float2 rand = random_2D(seed + seedOffset);
+
+            //Find distance to cell
+            float2 cellPosition = cell + (rand * interval);
+            float2 toCell = cellPosition - p;
+            if(length(toCell) < minDist){
+                minDist = length(toCell);
+            }
+        }
+    }
+//
+    float result = smoothstep(0.0, 1.0, minDist / interval);
+    return result;
+}
+
+float2 LOCALgradientVector_2D(float2 input, uint seedOffset){
+
+    //TODO: Maybe make more gradient vectors
+    float2 vectors[8] = {
+        float2(1.0, 1.0),
+        float2(1.0, -1.0),
+        float2(-1.0, 1.0),
+        float2(-1.0, -1.0),
+        float2(1.0, 0.0),
+        float2(0.0, -1.0),
+        float2(0.0, 1.0),
+        float2(-1.0, 0.0),
+    };
+
+    int seed = seedGen_ui2(int2(input.x * _ScreenParams.x, input.y * _ScreenParams.y));
+    int r = pcgHash_ui(seed + seedOffset);
+    r = pcgHash_ui(r);
+    float2 v = vectors[r & 7];
+
+    return v;
+}
+
+float LOCALperlinNoise_2D(float2 p, float cellSize, int f, uint seedOffset) {
+
+    //Interval between cells
+    float i = 1.0 / cellSize;
+
+    //Cell that this pixel lies in
+    float2 id = floor(p * cellSize) / cellSize;
+
+    //Cordinates of cell corners
+    float2 tl = float2(id.x, id.y);
+    float2 tr = float2(id.x + i, id.y);;
+    float2 bl = float2(id.x, id.y + i);
+    float2 br = float2(id.x + i, id.y + i);
+
+    //Wrap around
+    tl = modulo(tl, float2(f,f));
+    tr = modulo(tr, float2(f,f));
+    bl = modulo(bl, float2(f,f));
+    br = modulo(br, float2(f,f));
+
+    //Vector from corners of cell to point
+    float2 v_tl = remap_f2(float2(p.x - id.x, p.y - id.y), 0.0, i, 0.0, 1.0);
+    float2 v_tr = remap_f2(float2(p.x - id.x - i, p.y - id.y), 0.0, i, 0.0, 1.0);
+    float2 v_bl = remap_f2(float2(p.x - id.x, p.y - id.y - i), 0.0, i, 0.0, 1.0);
+    float2 v_br = remap_f2(float2(p.x - id.x - i, p.y - id.y - i), 0.0, i, 0.0, 1.0);
+
+    //Gradient vectors at each cell corner
+    float2 gv_tl = LOCALgradientVector_2D(tl, seedOffset);
+    float2 gv_tr = LOCALgradientVector_2D(tr, seedOffset);
+    float2 gv_bl = LOCALgradientVector_2D(bl, seedOffset);
+    float2 gv_br = LOCALgradientVector_2D(br, seedOffset);
+
+    //Fade value
+    float fx = fade((p.x * cellSize) - floor(p.x * cellSize));
+    float fy = fade((p.y * cellSize) - floor(p.y * cellSize));
+
+    //Dot product of corner gradient and vector to point
+    float dot_tl = dot(v_tl, gv_tl);
+    float dot_tr = dot(v_tr, gv_tr);
+    float dot_bl = dot(v_bl, gv_bl);
+    float dot_br = dot(v_br, gv_br);
+
+    //Bilinear interpolation
+    float n_t = lerp(dot_tl, dot_tr, fx);
+    float n_b = lerp(dot_bl, dot_br, fx);
+    float n = lerp(n_t, n_b, fy);
+
+    return n;
+}
+
+float LOCALperlinNoise_2D_fbm(float2 p, float H, float freq, float numOctaves, uint seedOffset){
+    float G = exp2(-H);
+    float f = 1.0;
+    float a = 1.0;
+    float t = 0.0;
+    for(int i = 0; i < numOctaves; i++){
+        t += a * LOCALperlinNoise_2D(p * f, freq, f, seedOffset);
+        f *= 2.0;
+        a *= G;
+    }
+
+    return t;
+}
+
+float _PerlinFrequency;
+float _WorleyFrequency;
+
 
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -19,14 +147,103 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     Pixel pixel = pixels[id.x + id.y * resolution];
 
     float2 center = float2(0.5, 0.5);
-    float radius = 0.25;
-    float dist = distance(uv, center);
-    float val = 0;
-    if(dist < radius){
-        val = 1;
-    }
+    float outerRadius = 0.4;
+    float innerRadius = 0.00;
 
-    pixel.color = float4(val, val, val, 1);
+    // float perlinNoise = perlinNoise_2D(uv, 4) * 0.1;
+    // float perlinNoise = 0;
+    // float dist = distance(float2(uv.x, uv.y) + perlinNoise + float2(0.0, 0.0), center);
+    // float val = smoothstep(0.0, 1.0, 1.0 - (dist - innerRadius) / (outerRadius - innerRadius));
+    // val = val * 0.99;
+
+
+    // outerRadius = 0.1;
+    // innerRadius = 0.00;
+    // center = float2(0.6, 0.5);
+    // dist = distance(float2(uv.x, uv.y) + perlinNoise + float2(0.0, 0.0), center);
+    // val = val + smoothstep(0.0, 1.0, 1.0 - (dist - innerRadius) / (outerRadius - innerRadius)) * 0.5;
+
+    // outerRadius = 0.2;
+    // innerRadius = 0.00;
+    // center = float2(0.35, 0.5);
+    // dist = distance(float2(uv.x, uv.y) + perlinNoise + float2(0.0, 0.0), center);
+    // val = val + smoothstep(0.0, 1.0, 1.0 - (dist - innerRadius) / (outerRadius - innerRadius)) * 0.3;
+
+    // // float val = 0;
+    // // if(dist < innerRadius){
+    // //     val = 1;
+    // // }
+    // // else if (dist < outerRadius){
+    // //     val = 1 - (dist - innerRadius) / (outerRadius - innerRadius);
+    // // }
+
+    // val = remap_f(val, 0, 1, 0.0, 1.0);
+
+
+
+    // float val = 0;
+    // float perlin = 0;
+    // float noiseStr = 0.1;
+
+    // perlin = LOCALperlinNoise_2D_fbm(uv, 0.8, 2, 4, 54321);
+
+
+    // float worley = (1.0 - worleyNoiseSmooth_2D(uv + perlin * noiseStr, 4, 123));
+    // worley = remap_f(worley, 0.4, 1.0, 0.0, 1.0);
+    // val += (worley) * 1.0;
+
+
+    float perlin = LOCALperlinNoise_2D_fbm(uv, 0.8, _PerlinFrequency, 2, 54321);
+    perlin = remap_f(perlin, -1.0, 1.0, 0.0, 1.0);
+    saturate(perlin);
+    // float worleyNoise = worleyNoiseSmooth_2D(uv, _WorleyFrequency, 123);
+    //float worleyNoise_2D_fbm(float2 p, float intervalOffset, float H, float freq, float numOctaves){
+    float worley = worleyNoise_2D_fbm(uv, 0.8, _WorleyFrequency, 2);
+    saturate(worley);
+    worley -= 0.1;
+    saturate(worley);
+    // clamp(worley, 0.0, 0.9);
+    // worleyNoise = 1.0 - worleyNoise;
+    
+
+    // float val = perlin;
+    // float val = worleyNoise;
+    float val = remap_f(perlin, worley, 1.0, 0.0, 1.0);
+    val *= 1.5;
+
+
+    
+
+
+
+
+
+
+    // worley = (1.0 - worleyNoiseSmooth_2D(uv + perlin * noiseStr, 8, 321));
+    // worley = remap_f(worley, 0.8, 1.2, 0.0, 1.0);
+    // val += saturate(worley) * 0.5;
+    // // perlin = LOCALperlinNoise_2D_fbm(uv, 0.8, 4.0, 3, 11234);
+    // worley = (1.0 - worleyNoiseSmooth_2D(uv + perlin * noiseStr, 8, 321));
+    // val *= (worley) * 1.0;
+
+    // worley = (1.0 - worleyNoiseSmooth_2D(uv + perlin * noiseStr, 16, 321));
+    // val *= (worley) * 1.0;
+
+    // worley = (1.0 - worleyNoiseSmooth_2D(uv + perlin * noiseStr, 4, 123));
+    // val += (worley) * 0.5;
+
+    // // perlin = LOCALperlinNoise_2D_fbm(uv, 0.8, 4.0, 3, 97482);
+    // // worley = (1.0 - worleyNoiseSmooth_2D(uv + perlin * 0.1, 14, 5432));
+    // // worley = remap_f(worley, 0.5, 1.0, 0.0, 1.0);
+    // // val = val + saturate(worley) * 0.3f;
+
+
+
+
+
+    // val = val + (1.0 - worleyNoiseSmooth_2D(uv, 5, 5432)) * 0.5f;
+
+    pixel.color = float4(val, perlin, 1.0 - worley, 1);
 
     pixels[id.x + id.y * resolution] = pixel;
 }

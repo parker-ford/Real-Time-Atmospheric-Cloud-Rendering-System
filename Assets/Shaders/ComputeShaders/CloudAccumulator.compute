@@ -1,0 +1,43 @@
+#pragma kernel CSMain
+
+
+RWTexture2D<float4> _AccumulatedScatter;
+RWTexture2D<float> _AccumulatedTransmittance;
+RWTexture2D<float> _AccumulatedDepth;
+
+Texture2D _Transmittance;
+Texture2D _Scatter;
+Texture2D _Depth;
+
+int _BufferWidth, _BufferHeight;
+int _AccumulateMode;
+uint _Frame;
+uint _NumSuperSamples;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+
+    //Adding Frame
+    if(_AccumulateMode == 1){
+        _AccumulatedScatter[id.xy] += _Scatter[id.xy] / (float)_NumSuperSamples;
+        // _AccumulatedScatter[id.xy] += _Scatter[id.xy];
+
+        _AccumulatedTransmittance[id.xy] += _Transmittance[id.xy].r / (float)_NumSuperSamples;
+        // _AccumulatedTransmittance[id.xy] += _Transmittance[id.xy].r;
+
+        _AccumulatedDepth[id.xy] += _Depth[id.xy].r / (float)_NumSuperSamples;
+    }
+    //Removing Frame
+    else{
+        _AccumulatedScatter[id.xy] -= _Scatter[id.xy] / (float)_NumSuperSamples;
+        // _AccumulatedScatter[id.xy] -= _Scatter[id.xy];
+
+        _AccumulatedTransmittance[id.xy] -= _Transmittance[id.xy].r / (float)_NumSuperSamples;
+        // _AccumulatedTransmittance[id.xy] -= _Transmittance[id.xy].r;
+
+        _AccumulatedDepth[id.xy] -= _Depth[id.xy].r / (float)_NumSuperSamples;
+    }
+
+
+}

@@ -243,7 +243,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     // val = val + (1.0 - worleyNoiseSmooth_2D(uv, 5, 5432)) * 0.5f;
 
-    pixel.color = float4(val, perlin, 1.0 - worley, 1);
+    pixel.color = float4(val, val, val, 1);
 
     pixels[id.x + id.y * resolution] = pixel;
 }

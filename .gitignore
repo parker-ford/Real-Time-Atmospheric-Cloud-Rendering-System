@@ -71,6 +71,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-/[Aa]ssets/[Tt]extures/*
+/[Aa]ssets/[Tt]extures/Perlin3D
+/[Aa]ssets/[Tt]extures/WorleyNoise
 /[Aa]ssets/[Ss]creenShots/*
 /[Rr]ecordings

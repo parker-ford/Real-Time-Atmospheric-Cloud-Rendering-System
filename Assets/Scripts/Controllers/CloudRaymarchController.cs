@@ -137,8 +137,7 @@ public class CloudRaymarchController : MonoBehaviour
     public float scatteringCoefficient = 0.5f;
     [Range(0.0f, 1.0f)]
     public float absorptoinCoefficient = 0.5f;
-    [Range(0.0f, 1.0f)]
-    public float shadowDensity = 1.0f;
+
 
     [Header("Wind")]
     public Vector3 windDirection;
@@ -162,8 +161,6 @@ public class CloudRaymarchController : MonoBehaviour
     public Color ambientColor;
 
     [Header("Multiple Scattering")]
-    [Range(0.0f, 1.0f)]
-    public float multipleScatteringStrength = 1.0f;
     public int multipleScatteringOctaves = 4;
     public float multipleScatteringAttenuation = 0.5f;
     public float multipleScatteringContribution = 0.5f;
@@ -358,7 +355,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_CloudDensity", cloudDensity);
         renderCloudsCompute.SetFloat("_ScatteringCoefficient", scatteringCoefficient);
         renderCloudsCompute.SetFloat("_AbsorptionCoefficient", absorptoinCoefficient);
-        renderCloudsCompute.SetFloat("_ShadowDensity", shadowDensity);
         renderCloudsCompute.SetInt("_DebugDensity", (int)debugDensity);
 
         renderCloudsCompute.SetVector("_LightDir", -sun.transform.forward);
@@ -371,7 +367,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_AmbientStrength", ambientStrength);
         renderCloudsCompute.SetVector("_AmbientColor", ambientColor);
         renderCloudsCompute.SetVector("_LightColor", lightColor);
-        renderCloudsCompute.SetFloat("_MultipleScatteringStrength", multipleScatteringStrength);
         renderCloudsCompute.SetFloat("_DebugLighting", (int)debugLighting);
 
         renderCloudsCompute.SetFloat("_FogDensity", depthFogDensity);

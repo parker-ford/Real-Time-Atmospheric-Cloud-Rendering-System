@@ -38,7 +38,6 @@ float _DraineAsymmetry;
 float _DraineAlpha;
 float _LightIntensity;
 float _LightStepSize;
-float _ShadowDensity;
 float _AmbientStrength;
 float _MultipleScatteringStrength;
 float _GlobalCloudType;
@@ -229,7 +228,7 @@ float3 calculateLightEnergy(float3 pos, float cosTheta){
         lightPos.w = 0;
         float dimensionalProfile = calculateDimensionalProfile(lightPos);
         float density = calculateDensity(lightPos, dimensionalProfile);
-        tau += (density * _ShadowDensity);
+        tau += density;
         totalDistance += _LightStepSize;
     }
 
@@ -325,7 +324,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
                         float cosTheta = dot(normalize(ray.direction), normalize(_LightDir));
                         float3 ambientLight = _AmbientColor * _AmbientStrength * pow(1.0 - dimensionalProfile, 0.5);
-                        float multipleScattering = remap_f(dimensionalProfile * stepSize, 0.1, 1.0, 0.0, 1.0) * _MultipleScatteringStrength;
                         float3 directLight = _LightColor * calculateLightEnergy(pos.xyz, cosTheta) * _LightIntensity;
 
 
@@ -340,7 +338,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                         // transparency *= sampleAttenuation;
 
                         // Improve Scattering Integration:
-                        float3 luminance = directLight + ambientLight + multipleScattering;
+                        float3 luminance = directLight + ambientLight;
                         float3 integScatt = (luminance - luminance * sampleAttenuation) / clampedExtinction;
                         scattering += transparency * integScatt * _ScatteringCoefficient * density;
                         transparency *= sampleAttenuation;

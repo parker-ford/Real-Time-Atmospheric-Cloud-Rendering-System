@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -55,7 +56,6 @@ public class CloudRaymarchController : MonoBehaviour
     }
 
     public enum TypeDebug {
-        SingleGradient,
         GlobalCloudType,
         CloudTypeMap,
     }
@@ -79,17 +79,15 @@ public class CloudRaymarchController : MonoBehaviour
     [Range(0, 2000)]
     public int rayMarchSteps = 5;
     public float stepSize = 5f;
-    public PixelOffsetType pixelOffsetType = PixelOffsetType.WhiteNoise;
-    [Range(0.0f, 200.0f)]
-    public float pixelOffsetWeight = 0.0f;
-    [Range(0.0f, 200.0f)]
-    public float blueNosieOffsetWeight = 0.0f;
-    [Range(0.0f, 5.0f)]
-    public float marchDistanceOffsetWeight = 0.0f;
-    public bool useRayMarchOffset = false;
+    [NonSerialized]
+    public PixelOffsetType pixelOffsetType = PixelOffsetType.Nrooks;
+    [NonSerialized]
+    public float pixelOffsetWeight = 1.0f;
+    [NonSerialized]
+    public float blueNosieOffsetWeight = 1.0f;
     private int rayCastBitmask = 0;
 
-    [Header("Anti-Aliasing")]
+    [Header("Temporal Anti-Aliasing")]
     [Range(1, 8)]
     public int numSuperSamples;
     private int lastSamples;
@@ -116,11 +114,8 @@ public class CloudRaymarchController : MonoBehaviour
     public Vector2 cloudMapOffset = new Vector2(0, 0);
     [Range(-1.5f, 0.99f)]
     public float cloudCoverage = 0.5f;
-    // [Range(0.0f, 2.0f)]
-    public float cloudMapModifier = 0.0f;
 
     [Header("Cloud Type Parameters")]
-    public Texture2D singleCloudHeightGradient;
     public Texture2D cloudHeightGradient;
     public Texture2D cloudTypeMap;
     [Range(0.0f, 1.0f)]
@@ -141,8 +136,6 @@ public class CloudRaymarchController : MonoBehaviour
     public float lowFreqCloudNoiseTiling = 100f;
     public float highFreqCloudNoiseTiling = 200f;
     public float wispyNosieTiling = 100f;
-    [Range(0.0f, 2.0f)]
-    public float noiseModifier = 1.0f;
 
     [Header("Cloud Paramters")]
     [Range(0.0f, 1.0f)]
@@ -327,7 +320,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetTexture(0, "_BlueNoiseTextureCompute2", UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Textures/BlueNoise/BlueNoise2.png"));
 
         renderCloudsCompute.SetTexture(0, "_CloudMap", cloudMap);
-        renderCloudsCompute.SetTexture(0, "_SingleCloudHeightGradient", singleCloudHeightGradient);
         renderCloudsCompute.SetTexture(0, "_CloudHeightGradient", cloudHeightGradient);
         renderCloudsCompute.SetTexture(0, "_CloudTypeMap", cloudTypeMap);
 
@@ -353,10 +345,6 @@ public class CloudRaymarchController : MonoBehaviour
 
     void UpdateCloudParameters(){
         rayCastBitmask = 0;
-        if (useRayMarchOffset)
-        {
-            rayCastBitmask |= MARCH_OFFSET;
-        }
         switch (pixelOffsetType)
         {
             case PixelOffsetType.WhiteNoise:
@@ -373,7 +361,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_RayMarchSteps", rayMarchSteps);
         renderCloudsCompute.SetInt("_RaycastBitMask", rayCastBitmask);
         renderCloudsCompute.SetFloat("_PixelOffsetWeight", pixelOffsetWeight);
-        renderCloudsCompute.SetFloat("_RayMarchDistanceOffsetWeight", marchDistanceOffsetWeight);
         renderCloudsCompute.SetFloat("_BlueNoiseOffsetWeight", blueNosieOffsetWeight);
 
         renderCloudsCompute.SetFloat("_CloudMapTiling", cloudMapTiling);
@@ -386,8 +373,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_AtmosphereHigh", upperRadius);
 
         renderCloudsCompute.SetFloat("_CloudCoverage", cloudCoverage);
-        renderCloudsCompute.SetFloat("_CloudMapModifier", cloudMapModifier);
-        renderCloudsCompute.SetFloat("_NoiseModifier", noiseModifier);
 
         renderCloudsCompute.SetFloat("_GlobalCloudType", globalCloudType);
         renderCloudsCompute.SetInt("_DebugType", (int)debugType);

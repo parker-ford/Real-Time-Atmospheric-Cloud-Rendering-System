@@ -49,9 +49,7 @@ float _CloudTypeMapTiling;
 float _FogDensity, _FogOffset;
 float _GlobalMinCloudType, _GlobalMaxCloudType;
 float _CloudCoverage;
-float _CloudMapModifier;
 float _CloudTypeModifier;
-float _NoiseModifier;
 float _NoiseStrength;
 float _WindSpeed;
 float _MultipleScatteringAttenuation;
@@ -142,15 +140,12 @@ float sampleCloudMap(float4 pos){
 float sampleHeightGradient(float4 pos, float cloudMap){
     float cloudHeight = getHeightFract(pos);
     if(_DebugType == 0){
-        return _SingleCloudHeightGradient.SampleLevel(linear_repeat_sampler, float2(0.5, cloudHeight), 0).r;
-    }
-    else if(_DebugType == 1){
         // float cloudType = remap_f(cloudMap, 0, 1.0, 0, _GlobalCloudType) * _CloudDensity;
         float cloudType = remap_f(cloudMap, 0.0, 1.0, 0, _GlobalCloudType);
         // float cloudType = _GlobalCloudType;
         return _CloudHeightGradient.SampleLevel(linear_clamp_sampler, float2(cloudType, cloudHeight), 0).r;
     }
-    else if(_DebugType == 2){
+    else if(_DebugType == 1){
         float4 cloudTypeSample = _CloudTypeMap.SampleLevel(linear_repeat_sampler, pos.xz / _CloudTypeMapTiling, pos.w);
         float cloudType = remap_f(cloudMap, 0.0, 1.0, 0, _GlobalCloudType); 
         // cloudType = pow(cloudType, 4.0);
@@ -208,7 +203,7 @@ float getBaseCloud(float4 pos, float dimensionalProfile){
 float calculateDensity(float4 pos, float dimensionalProfile){
     float noise = getBaseCloud(pos, dimensionalProfile);
     //Maybe not saturate
-    float density = saturate(saturate(noise * _NoiseModifier) - (1.0 - (dimensionalProfile / _CloudFalloff)));
+    float density = saturate(saturate(noise) - (1.0 - (dimensionalProfile / _CloudFalloff)));
     // float n = saturate(noise);
     // float d = 1.0 - dimensionalProfile;
     // float density = saturate(n - pow(d, 0.5));

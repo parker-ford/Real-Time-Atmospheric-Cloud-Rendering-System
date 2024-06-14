@@ -151,8 +151,6 @@ public class CloudRaymarchController : MonoBehaviour
     public Color lightColor;
     public float lightStepSize = 10;
     public int lightMarchSteps = 10;
-    [Range(0.0f, 1.0f)]
-    public float powderWeight = 0.0f;
     Light sun;
 
     [Header("Ambient Lighting")]
@@ -383,7 +381,6 @@ public class CloudRaymarchController : MonoBehaviour
 
         renderCloudsCompute.SetFloat("_StepSize", stepSize);
         renderCloudsCompute.SetFloat("_WindStretchFactor", windStretchFactor);
-        renderCloudsCompute.SetFloat("_PowderWeight", powderWeight);
         renderCloudsCompute.SetInt("_LightMarchSteps", lightMarchSteps);
     }
 

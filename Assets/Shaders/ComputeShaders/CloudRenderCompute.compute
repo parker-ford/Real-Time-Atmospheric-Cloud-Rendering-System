@@ -53,7 +53,6 @@ float _MultipleScatteringEccentricity;
 int _MultipleScatteringOctaves;
 float _StepSize;
 float _WindStretchFactor;
-float _PowderWeight;
 int _LightMarchSteps;
 
 RWTexture2D<float> _CloudMask;
@@ -69,9 +68,8 @@ float calculateHeightGradient(float a, float b, float c, float height){
 }
 
 float beers(float tau){
-    float powder = 1.0 - exp(tau * 2);
     float beers = exp(tau);
-    return lerp(beers , 2.0 * beers * powder, _PowderWeight);
+    return beers;
 }
 
 float henyeyGreenstein(float g, float cosTheta) {

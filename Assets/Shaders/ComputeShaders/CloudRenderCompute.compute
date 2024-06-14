@@ -93,13 +93,7 @@ float draineHG(float g_HG, float g_D, float a, float w, float cosTheta){
 }
 
 float phase(float g_HG, float g_D, float a, float w, float cosTheta){
-    // return henyeyGreenstein(g, cosTheta);
-    // return doubleHenyeyGreenstein(g, cosTheta);
-    // return draineHG(g, cosTheta, a);
-    // return 1;
-
     return draineHG(g_HG, g_D, a, w, cosTheta);
-    // return henyeyGreenstein(0, cosTheta);
 }
 
 float getHeightFract(float3 p){
@@ -110,13 +104,9 @@ float getHeightFract(float3 p){
 
 float sampleCloudMap(float4 pos){
     float2 windEffect = _WindDirection * _WindStretchFactor;
-    // float2 windEffect = 0;
     float2 texCoords = (pos.xz + _CloudMapOffset + windEffect) / _CloudMapTiling;
     texCoords /= 1.0 + windEffect;
     float cloudSample =  _CloudMap.SampleLevel(linear_repeat_sampler, texCoords, pos.w).r;
-    // cloudSample = saturate(cloudSample * _CloudCoverage);
-    // cloudSample += (_CloudCoverage - 0.5);
-    // cloudSample = remap_f(cloudSample, 1.0 - _CloudCoverage, 1.0, 0.0, 1.0);
 
     if(_CloudCoverage >= 0.0){
         cloudSample = lerp(cloudSample, 1.0, _CloudCoverage);
@@ -124,84 +114,63 @@ float sampleCloudMap(float4 pos){
     else{
         cloudSample = lerp(cloudSample, 0.0, abs(_CloudCoverage));
     }
-    // cloudSample = lerp(cloudSample, 0.5 * (_CloudCoverage + 1.0), abs(_CloudCoverage));
-    // cloudSample = lerp(0.0, 1.0, cloudSample * (_CloudCoverage + 1.0));
     return cloudSample;
-    // return smoothstep(_CloudCoverage, 1.0, cloudSample);
+
 }
 
 float sampleHeightGradient(float4 pos, float cloudMap){
     float cloudHeight = getHeightFract(pos);
     if(_DebugType == 0){
-        // float cloudType = remap_f(cloudMap, 0, 1.0, 0, _GlobalCloudType) * _CloudDensity;
         float cloudType = remap_f(cloudMap, 0.0, 1.0, 0, _GlobalCloudType);
-        // float cloudType = _GlobalCloudType;
         return _CloudHeightGradient.SampleLevel(linear_clamp_sampler, float2(cloudType, cloudHeight), 0).r;
     }
     else if(_DebugType == 1){
         float4 cloudTypeSample = _CloudTypeMap.SampleLevel(linear_repeat_sampler, pos.xz / _CloudTypeMapTiling, pos.w);
         float cloudType = remap_f(cloudMap, 0.0, 1.0, 0, _GlobalCloudType); 
-        // cloudType = pow(cloudType, 4.0);
-        // cloudType = _GlobalCloudType;
-
         float cloudModifier = cloudTypeSample.r * _CloudTypeModifier;
-        // cloudType += cloudModifier;
-        // cloudType = saturate(cloudType);
         cloudType += pow(cloudModifier, 0.75);
         cloudType = clamp(cloudType, 0.005, 0.995);
         cloudHeight = clamp(cloudHeight, 0.005, 0.995);
         return _CloudHeightGradient.SampleLevel(linear_repeat_sampler, float2(cloudType, cloudHeight), 0).r; 
     }
 
-
     return 0.0;
 }
 
 float calculateDimensionalProfile(float4 pos){
     float cloudMap = sampleCloudMap(pos);
-    // cloudMap = pow(cloudMap, remap_f(getHeightFract(pos), 0.7, 0.8, 1.0, lerp(1.0, 0.5, _WindSpeed)));
     float heightGradient = sampleHeightGradient(pos, cloudMap);
     return cloudMap * heightGradient * _CloudDensity;
 }
 
 float getBaseCloud(float4 pos, float dimensionalProfile){
-
     pos.xyz -= _WindDirection * smoothstep(0.0, 1.0, getHeightFract(pos)) * _WindSpeed * -1.0;
 
-    float4 lowFreqNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _BillowyNoiseTiling, pos.w);
+    //Sample Noise Textures
+    float4 lowFreqBillowyNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _BillowyNoiseTiling, pos.w);
+    float4 highFreqBillowyNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos / (_BillowyNoiseTiling / 2.0), pos.w);
     float4 wispyNoise = _WispyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _WispyNoiseTiling, pos.w);
-    float lowFreqFBM = (lowFreqNoise.b * 0.625) + (lowFreqNoise.g * 0.25) + (lowFreqNoise.a * 0.125);
-    float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
 
-    float4 highFreqNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos / (_BillowyNoiseTiling / 2.0), pos.w);
-    float highFreqFBM = (highFreqNoise.r * 0.625) + (highFreqNoise.g * 0.25) + (highFreqNoise.b * 0.125);
+    //Combine Noise Channels
+    float lowFreqBillowyFBM = (lowFreqNoise.b * 0.625) + (lowFreqNoise.g * 0.25) + (lowFreqNoise.a * 0.125);
+    float highFreqBillowyFBM = (highFreqNoise.r * 0.625) + (highFreqNoise.g * 0.25) + (highFreqNoise.b * 0.125);
+    float billowyNoise = lowFreqFBM * 0.60f + highFreqFBM * 0.40f;
+    float wispyNoise = (wispyNoise.b * 0.625) + (wispyNoise.g * 0.25) + (wispyNoise.r * 0.125);
 
-    float billowTransition = remap_f(getHeightFract(pos.xyz), 0.0, saturate(0.3 + _GlobalCloudType), 0.0, 1.0);
-    // float billow = lerp(lowFreqFBM, highFreqFBM, min(saturate(billowTransition), 0.5));
-
-    float billow = lowFreqFBM * 0.60f + highFreqFBM * 0.40f;
-    // float billow = lowFreqFBM;
-    float wisp = (wispyNoise.b * 0.625) + (wispyNoise.g * 0.25) + (wispyNoise.r * 0.125);
-    
-
+    //Transition between noise types
     float transition = remap_f(getHeightFract(pos.xyz), 0.0, 0.3, 0.0, 0.75);
-    
-    float noise =  lerp(wisp, billow, saturate(transition));
+    float noise =  lerp(wispyNoise, billowNoise, saturate(transition));
+
     return noise;
 }
 
 float calculateDensity(float4 pos, float dimensionalProfile){
     float noise = getBaseCloud(pos, dimensionalProfile);
-    //Maybe not saturate
     float density = saturate(saturate(noise) - (1.0 - (dimensionalProfile)));
-    // float n = saturate(noise);
-    // float d = 1.0 - dimensionalProfile;
-    // float density = saturate(n - pow(d, 0.5));
     return _DebugDensity == 1 ? density : dimensionalProfile;
 }
 
-float3 MultipleOctaveScattering(float tau, float cosTheta) {
-
+float3 multipleScattering(float tau, float cosTheta) {
     float a = _MultipleScatteringAttenuation;
     float b = _MultipleScatteringContribution;
     float c = _MultipleScatteringEccentricity;
@@ -221,7 +190,6 @@ float3 calculateLightEnergy(float3 pos, float cosTheta){
     for(int l = 0; l < _LightMarchSteps; l++){
         float lightT = _LightStepSize * (l + 0.5);
         float4 lightPos = 0;
-        // lightPos.xyz = pos + _LightDir * lightT;
         lightPos.xyz = pos + _LightDir * totalDistance + _LightDir * (frameSegment * _LightStepSize) + _LightDir * (_LightStepSize / (float)_NumSuperSamples) * 0.5;
         lightPos.w = 0;
         float dimensionalProfile = calculateDimensionalProfile(lightPos);
@@ -230,8 +198,7 @@ float3 calculateLightEnergy(float3 pos, float cosTheta){
         totalDistance += _LightStepSize;
     }
 
-    return MultipleOctaveScattering(tau, cosTheta);
-    // return exp(-tau) * (_AbsorptionCoefficient + _ScatteringCoefficient) * phase(0,0,0,0,cosTheta);
+    return multipleScattering(tau, cosTheta);
 }
 
 [numthreads(8,8,1)]
@@ -241,12 +208,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float2 uv = float2((id.xy) / float2(_BufferWidth, _BufferHeight));
     float4 blueNoiseSample = sampleBlueNoiseCompute(uv * float2(_BufferWidth / 256.0, _BufferHeight / 256.0), point_repeat_sampler);
-    // float4 blueNoiseSample = 0;
 
     float2 pixelOffset = blueNoiseSample.rg;
     float distanceOffset = blueNoiseSample.b;
-    // distanceOffset = (distanceOffset + (_Frame % _NumSuperSamples) / (float)_NumSuperSamples);
-    // distanceOffset = fract(distanceOffset);
     
     Ray ray = getRayFromUV(uv, pixelOffset, SCALE_TO_EARTH_RADIUS);
     Sphere lowerAtmosphere = {float3(0, 0, 0), SCALE_TO_EARTH_RADIUS == 1 ? EARTH_RADIUS + _AtmosphereLow : _AtmosphereLow};
@@ -260,7 +224,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float transparency = 1;
     int depthSaved = 0;
 
-    // _CloudDepth[id.xy] = lowerAtmosphereHit.exit / (float)MAX_VIEW_DISTANCE;
     _CloudDepth[id.xy] = 1.0;
 
     if(lowerAtmosphereHit.hit && lowerAtmosphereHit.exit < maxDist)
@@ -302,7 +265,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             pos.xyz = ray.origin + ray.direction * totalDistance + ray.direction * (frameSegment * stepSize) + ray.direction * distanceOffset * (stepSize / (float)_NumSuperSamples);
             pos.w = remap_f(length(pos.xyz - ray.origin), 0.0, maxDist, 0.0, 6.0);
             if(cloudTest >= cloudTestThreshold){
-                // pos += _WindDirection * smoothstep(0.0, 1.0, getHeightFract(pos)) * _WindSpeed * -1.0;
                 float dimensionalProfile = calculateDimensionalProfile(pos);
 
                 if(dimensionalProfile > 0.001){
@@ -324,18 +286,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                         float3 ambientLight = _AmbientColor * _AmbientStrength * pow(1.0 - dimensionalProfile, 0.5);
                         float3 directLight = _LightColor * calculateLightEnergy(pos.xyz, cosTheta) * _LightIntensity;
 
-
-                        //Current Scattering Integration:
-                        // float3 luminance = directLight + ambientLight + multipleScattering;
-                        // transparency *= sampleAttenuation;
-                        // scattering += transparency * luminance * _ScatteringCoefficient * density * stepSize;
-
-                        //Alternate Scattering Integration:
-                        // float3 luminance = directLight + ambientLight + multipleScattering;
-                        // scattering += transparency * luminance * _ScatteringCoefficient * density * stepSize;
-                        // transparency *= sampleAttenuation;
-
-                        // Improve Scattering Integration:
+                        // Improved Scattering Integration:
                         float3 luminance = directLight + ambientLight;
                         float3 integScatt = (luminance - luminance * sampleAttenuation) / clampedExtinction;
                         scattering += transparency * integScatt * _ScatteringCoefficient * density;
@@ -347,13 +298,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                     }
 
                     if( depthSaved == 0){
-                        // _CloudDepth[id.xy] = totalDistance / (float)MAX_VIEW_DISTANCE * 2.0f;
                         float atmosphericDepth = 1.0 - dot(ray.direction, float3(0, 1, 0));
                         atmosphericDepth = totalDistance / (float)MAX_VIEW_DISTANCE * 2.0f;
                         float fogFactor = (_FogDensity / sqrt(log(2.0))) * max(0.0f, totalDistance - _FogOffset);
                         fogFactor = exp2(-fogFactor * fogFactor);
                         _CloudDepth[id.xy] = 1.0 - fogFactor;
-
                         depthSaved = 1;
                     }
 
@@ -371,10 +320,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                 totalDistance += stepSize;
             }
             else {
-                // float3 pos = ray.origin + ray.direction * totalDistance + ray.direction * distanceOffset * stepSize;
                 cloudTest = calculateDimensionalProfile(pos);
                 if(cloudTest < cloudTestThreshold){
-                    // n--;
                     totalDistance += stepSize * 1;
                 }
                 else {
@@ -385,16 +332,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     }
 
-    // color = float4(sampleHeightGradient(float3(uv, 0)), 0.0, 0.0, 1.0);
-
-
-    // if(transparency > (0.9 + (blueNoiseSample.r * 0.1)) ){
-    //     transparency = 1.0;
-    // }
-
     _CloudTex[id.xy] = float4(scattering, 1.0);
     _CloudMask[id.xy] = transparency;
-    // _CloudDepth[id.xy] = 0.0;
-
 
 }

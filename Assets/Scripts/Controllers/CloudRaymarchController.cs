@@ -139,8 +139,6 @@ public class CloudRaymarchController : MonoBehaviour
     public float absorptoinCoefficient = 0.5f;
     [Range(0.0f, 1.0f)]
     public float shadowDensity = 1.0f;
-    [Range(0.0001f, 2.0f)]
-    public float cloudFalloff = 1.0f;
 
     [Header("Wind")]
     public Vector3 windDirection;
@@ -373,7 +371,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_CloudDensity", cloudDensity);
         renderCloudsCompute.SetFloat("_ScatteringCoefficient", scatteringCoefficient);
         renderCloudsCompute.SetFloat("_AbsorptionCoefficient", absorptoinCoefficient);
-        renderCloudsCompute.SetFloat("_CloudFalloff", cloudFalloff);
         renderCloudsCompute.SetFloat("_ShadowDensity", shadowDensity);
         renderCloudsCompute.SetInt("_DebugDensity", (int)debugDensity);
 

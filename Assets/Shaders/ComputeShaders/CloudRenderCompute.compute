@@ -32,7 +32,6 @@ float _AtmosphereLow, _AtmosphereHigh;
 float _AbsorptionCoefficient, _ScatteringCoefficient;
 float _CloudMapTiling, _BillowyNoiseTiling, _WispyNoiseTiling;
 float _CloudDensity;
-float _CloudFalloff;
 float _PhaseWeight;
 float _HGAsymmetry;
 float _DraineAsymmetry;
@@ -197,7 +196,7 @@ float getBaseCloud(float4 pos, float dimensionalProfile){
 float calculateDensity(float4 pos, float dimensionalProfile){
     float noise = getBaseCloud(pos, dimensionalProfile);
     //Maybe not saturate
-    float density = saturate(saturate(noise) - (1.0 - (dimensionalProfile / _CloudFalloff)));
+    float density = saturate(saturate(noise) - (1.0 - (dimensionalProfile)));
     // float n = saturate(noise);
     // float d = 1.0 - dimensionalProfile;
     // float density = saturate(n - pow(d, 0.5));

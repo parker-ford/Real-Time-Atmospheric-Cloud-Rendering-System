@@ -251,14 +251,9 @@ MonoBehaviour:
   debugTexture: 0
   debugDensity: 1
   debugLighting: 1
-  debugType: 2
+  debugType: 1
   rayMarchSteps: 2000
   stepSize: 100
-  pixelOffsetType: 1
-  pixelOffsetWeight: 0
-  blueNosieOffsetWeight: 0
-  marchDistanceOffsetWeight: 0
-  useRayMarchOffset: 0
   numSuperSamples: 8
   lowerRadius: 200
   upperRadius: 1200
@@ -266,23 +261,15 @@ MonoBehaviour:
   cloudMapTiling: 10372
   cloudMapOffset: {x: 951.5, y: 130}
   cloudCoverage: 0
-  cloudMapModifier: 1
-  singleCloudHeightGradient: {fileID: 2800000, guid: efa09c2084625314b949958ab9ba1ea1, type: 2}
   cloudHeightGradient: {fileID: 2800000, guid: efa09c2084625314b949958ab9ba1ea1, type: 2}
   cloudTypeMap: {fileID: 2800000, guid: 73d3e4362c3f7f74cafeaf5dc13b3471, type: 2}
   globalCloudType: 0.08
-  globalMinCloudType: 0.069
-  globalMaxCloudType: 0.076
   cloudTypeMapTiling: 6971
   cloudTypeModifier: 0.769
-  cloudHeightStrength: {x: 1.31, y: 0, z: 0}
-  lowFreqCloudNoise: {fileID: 11700000, guid: 99a7dc08f38cc8247b547319119f35cc, type: 2}
-  highFreqCloudNoise: {fileID: 11700000, guid: 99a7dc08f38cc8247b547319119f35cc, type: 2}
+  billowyNoise: {fileID: 11700000, guid: 99a7dc08f38cc8247b547319119f35cc, type: 2}
   wispyNoise: {fileID: 11700000, guid: e0301994bc3be3248b9916525f127c87, type: 2}
-  lowFreqCloudNoiseTiling: 800
-  highFreqCloudNoiseTiling: 329.4
+  billowyNoiseTiling: 800
   wispyNosieTiling: 1238.9
-  noiseModifier: 1.091
   cloudDensity: 1
   scatteringCoefficient: 0.424
   absorptoinCoefficient: 0

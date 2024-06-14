@@ -14,8 +14,7 @@ Texture2D _CloudMap;
 Texture2D _CloudHeightGradient;
 Texture2D _CloudTypeMap;
 Texture2D _SingleCloudHeightGradient;
-Texture3D _LowFrequencyCloudNoise;
-Texture3D _HighFrequencyCloudNoise;
+Texture3D _BillowyNoise;
 Texture3D _WispyNoise;
 
 float3 _LightDir;
@@ -31,7 +30,7 @@ int _DebugType;
 int _BufferWidth, _BufferHeight;
 float _AtmosphereLow, _AtmosphereHigh;
 float _AbsorptionCoefficient, _ScatteringCoefficient;
-float _CloudMapTiling, _LowFreqCloudNoiseTiling, _HighFreqCloudNoiseTiling, _WispyNoiseTiling;
+float _CloudMapTiling, _BillowyNoiseTiling, _WispyNoiseTiling;
 float _CloudDensity;
 float _CloudFalloff;
 float _PhaseWeight;
@@ -173,12 +172,12 @@ float getBaseCloud(float4 pos, float dimensionalProfile){
 
     pos.xyz -= _WindDirection * smoothstep(0.0, 1.0, getHeightFract(pos)) * _WindSpeed * -1.0;
 
-    float4 lowFreqNoise = _LowFrequencyCloudNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _LowFreqCloudNoiseTiling, pos.w);
+    float4 lowFreqNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _BillowyNoiseTiling, pos.w);
     float4 wispyNoise = _WispyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _WispyNoiseTiling, pos.w);
     float lowFreqFBM = (lowFreqNoise.b * 0.625) + (lowFreqNoise.g * 0.25) + (lowFreqNoise.a * 0.125);
     float baseCloud = remap_f(lowFreqNoise.r, (1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
 
-    float4 highFreqNoise = _HighFrequencyCloudNoise.SampleLevel(linear_repeat_sampler, pos / _HighFreqCloudNoiseTiling, pos.w);
+    float4 highFreqNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos / (_BillowyNoiseTiling / 2.0), pos.w);
     float highFreqFBM = (highFreqNoise.r * 0.625) + (highFreqNoise.g * 0.25) + (highFreqNoise.b * 0.125);
 
     float billowTransition = remap_f(getHeightFract(pos.xyz), 0.0, saturate(0.3 + _GlobalCloudType), 0.0, 1.0);
@@ -188,8 +187,6 @@ float getBaseCloud(float4 pos, float dimensionalProfile){
     // float billow = lowFreqFBM;
     float wisp = (wispyNoise.b * 0.625) + (wispyNoise.g * 0.25) + (wispyNoise.r * 0.125);
     
-   
-    // return wisp;
 
     float transition = remap_f(getHeightFract(pos.xyz), 0.0, 0.3, 0.0, 0.75);
     

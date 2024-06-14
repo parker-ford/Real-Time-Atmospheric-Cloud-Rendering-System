@@ -125,11 +125,9 @@ public class CloudRaymarchController : MonoBehaviour
     public float cloudTypeModifier = 0.0f;
 
     [Header("Cloud Noise Parameters")]
-    public Texture3D lowFreqCloudNoise;
-    public Texture3D highFreqCloudNoise;
+    public Texture3D billowyNoise;
     public Texture3D wispyNoise;
-    public float lowFreqCloudNoiseTiling = 100f;
-    public float highFreqCloudNoiseTiling = 200f;
+    public float billowyNoiseTiling = 100f;
     public float wispyNosieTiling = 100f;
 
     [Header("Cloud Paramters")]
@@ -318,8 +316,7 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetTexture(0, "_CloudHeightGradient", cloudHeightGradient);
         renderCloudsCompute.SetTexture(0, "_CloudTypeMap", cloudTypeMap);
 
-        renderCloudsCompute.SetTexture(0, "_LowFrequencyCloudNoise", lowFreqCloudNoise);
-        renderCloudsCompute.SetTexture(0, "_HighFrequencyCloudNoise", highFreqCloudNoise);
+        renderCloudsCompute.SetTexture(0, "_BillowyNoise", billowyNoise);
         renderCloudsCompute.SetTexture(0, "_WispyNoise", wispyNoise);
 
         Shader.SetGlobalInt("_NumSuperSamples", 1);
@@ -360,8 +357,7 @@ public class CloudRaymarchController : MonoBehaviour
 
         renderCloudsCompute.SetFloat("_CloudMapTiling", cloudMapTiling);
         renderCloudsCompute.SetVector("_CloudMapOffset", cloudMapOffset);
-        renderCloudsCompute.SetFloat("_LowFreqCloudNoiseTiling", lowFreqCloudNoiseTiling);
-        renderCloudsCompute.SetFloat("_HighFreqCloudNoiseTiling", highFreqCloudNoiseTiling);
+        renderCloudsCompute.SetFloat("_BillowyNoiseTiling", billowyNoiseTiling);
         renderCloudsCompute.SetFloat("_WispyNoiseTiling", wispyNosieTiling);
 
         renderCloudsCompute.SetFloat("_AtmosphereLow", lowerRadius);

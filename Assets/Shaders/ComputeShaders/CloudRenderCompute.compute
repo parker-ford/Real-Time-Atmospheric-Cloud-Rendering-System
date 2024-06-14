@@ -78,9 +78,7 @@ float calculateHeightGradient(float a, float b, float c, float height){
 float beers(float tau){
     float powder = 1.0 - exp(tau * 2);
     float beers = exp(tau);
-
     return lerp(beers , 2.0 * beers * powder, _PowderWeight);
-    // return beers;
 }
 
 float henyeyGreenstein(float g, float cosTheta) {
@@ -344,9 +342,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
                         //Current Scattering Integration:
-                        float3 luminance = directLight + ambientLight + multipleScattering;
-                        transparency *= sampleAttenuation;
-                        scattering += transparency * luminance * _ScatteringCoefficient * density * stepSize;
+                        // float3 luminance = directLight + ambientLight + multipleScattering;
+                        // transparency *= sampleAttenuation;
+                        // scattering += transparency * luminance * _ScatteringCoefficient * density * stepSize;
 
                         //Alternate Scattering Integration:
                         // float3 luminance = directLight + ambientLight + multipleScattering;
@@ -354,10 +352,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                         // transparency *= sampleAttenuation;
 
                         // Improve Scattering Integration:
-                        // float3 luminance = directLight + ambientLight + multipleScattering;
-                        // float3 integScatt = (luminance - luminance * sampleAttenuation) / clampedExtinction;
-                        // scattering += transparency * integScatt * _ScatteringCoefficient * density;
-                        // transparency *= sampleAttenuation;
+                        float3 luminance = directLight + ambientLight + multipleScattering;
+                        float3 integScatt = (luminance - luminance * sampleAttenuation) / clampedExtinction;
+                        scattering += transparency * integScatt * _ScatteringCoefficient * density;
+                        transparency *= sampleAttenuation;
                     }
                     else{
                         transparency *= sampleAttenuation;

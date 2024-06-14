@@ -47,7 +47,6 @@ float _MultipleScatteringStrength;
 float _GlobalCloudType;
 float _CloudTypeMapTiling;
 float _FogDensity, _FogOffset;
-float _GlobalMinCloudType, _GlobalMaxCloudType;
 float _CloudCoverage;
 float _CloudTypeModifier;
 float _NoiseStrength;

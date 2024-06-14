@@ -120,10 +120,6 @@ public class CloudRaymarchController : MonoBehaviour
     public Texture2D cloudTypeMap;
     [Range(0.0f, 1.0f)]
     public float globalCloudType = 0.0f;
-    [Range(0.0f, 1.0f)]
-    public float globalMinCloudType = 0.0f;
-    [Range(0.0f, 1.0f)]
-    public float globalMaxCloudType = 1.0f;
     public float cloudTypeMapTiling = 100f;
     [Range(0.0f, 1.0f)]
     public float cloudTypeModifier = 0.0f;
@@ -377,8 +373,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_GlobalCloudType", globalCloudType);
         renderCloudsCompute.SetInt("_DebugType", (int)debugType);
         renderCloudsCompute.SetFloat("_CloudTypeMapTiling", cloudTypeMapTiling);
-        renderCloudsCompute.SetFloat("_GlobalMinCloudType", globalMinCloudType);
-        renderCloudsCompute.SetFloat("_GlobalMaxCloudType", globalMaxCloudType);
         renderCloudsCompute.SetFloat("_CloudTypeModifier", cloudTypeModifier);
 
         renderCloudsCompute.SetFloat("_CloudDensity", cloudDensity);

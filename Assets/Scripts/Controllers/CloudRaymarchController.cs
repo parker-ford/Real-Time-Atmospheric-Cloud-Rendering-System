@@ -123,7 +123,6 @@ public class CloudRaymarchController : MonoBehaviour
     public float cloudTypeMapTiling = 100f;
     [Range(0.0f, 1.0f)]
     public float cloudTypeModifier = 0.0f;
-    public Vector3 cloudHeightStrength = new Vector3(0, 0, 0);
 
     [Header("Cloud Noise Parameters")]
     public Texture3D lowFreqCloudNoise;
@@ -401,7 +400,6 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_WindSpeed", windSpeed);
         renderCloudsCompute.SetVector("_WindDirection", windDirection);
 
-        renderCloudsCompute.SetVector("_HeightMapStrength", cloudHeightStrength);
 
         renderCloudsCompute.SetFloat("_MultipleScatteringAttenuation", multipleScatteringAttenuation);
         renderCloudsCompute.SetFloat("_MultipleScatteringContribution", multipleScatteringContribution);

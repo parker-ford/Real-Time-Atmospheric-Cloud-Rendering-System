@@ -22,7 +22,6 @@ float3 _LightDir;
 float3 _AmbientColor;
 float3 _LightColor;
 float3 _WindDirection;
-float3 _HeightMapStrength;
 
 float2 _CloudMapOffset;
 
@@ -150,7 +149,6 @@ float sampleHeightGradient(float4 pos, float cloudMap){
         // cloudType = pow(cloudType, 4.0);
         // cloudType = _GlobalCloudType;
 
-        // float cloudModifier = (_CloudTypeModifier * (cloudTypeSample.r) * _HeightMapStrength.x) + (_CloudTypeModifier * (cloudTypeSample.g) * _HeightMapStrength.y) + (_CloudTypeModifier * (cloudTypeSample.b) * _HeightMapStrength.z);
         float cloudModifier = cloudTypeSample.r * _CloudTypeModifier;
         // cloudType += cloudModifier;
         // cloudType = saturate(cloudType);

@@ -181,19 +181,6 @@ public class CloudRaymarchController : MonoBehaviour
     public float depthFogDensity = 0.0f;
     public float depthFogOffset = 0.0f;
 
-    [Header("Post Processing")]
-    [Range(0.0f, 10.0f) ]
-    public float exposure;
-    public float contrast;
-    public float linearMidPoint;
-    public float brightness;
-    public float saturation;
-    public ToneMapper toneMapper;
-    //Schlick Parameters
-    public float p, hiVal;
-    [Range(0.0f, 10.0f)]
-    public float gamma = 1.0f;
-
 
     private RenderTexture cloudAlbedoFullTex;
     private RenderTexture cloudAlbedoHalfTex;
@@ -644,17 +631,6 @@ public class CloudRaymarchController : MonoBehaviour
         cloudCompositer.SetTexture("_CloudMask", cloudMaskTex);
         cloudCompositer.SetTexture("_CloudDepth", cloudDepthTex);
         cloudCompositer.SetInt("_DebugTexture", (int)debugTexture);
-
-
-        cloudCompositer.SetVector("_Exposure", new Vector3(exposure, exposure, exposure));
-        cloudCompositer.SetVector("_Contrast", new Vector3(contrast, contrast, contrast));
-        cloudCompositer.SetVector("_MidPoint", new Vector3(linearMidPoint, linearMidPoint, linearMidPoint));
-        cloudCompositer.SetVector("_Brightness", new Vector3(brightness, brightness, brightness));
-        cloudCompositer.SetVector("_Saturation", new Vector3(saturation, saturation, saturation));
-        cloudCompositer.SetInt("_ToneMapper", (int)toneMapper);
-        cloudCompositer.SetFloat("_Gamma", gamma);
-        cloudCompositer.SetFloat("_P", p);
-        cloudCompositer.SetFloat("_HiVal", hiVal);
 
 
         Graphics.Blit(source, destination, cloudCompositer);

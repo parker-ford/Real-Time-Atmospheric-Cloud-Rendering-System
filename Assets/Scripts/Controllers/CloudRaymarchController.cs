@@ -60,6 +60,11 @@ public class CloudRaymarchController : MonoBehaviour
         CloudTypeMap,
     }
 
+    public enum PhaseFunction {
+        Isotropic,
+        HG_Draine,
+    }
+
 
     [Header("Shaders")]
     public ComputeShader renderCloudsCompute;
@@ -152,6 +157,9 @@ public class CloudRaymarchController : MonoBehaviour
     public float lightStepSize = 10;
     public int lightMarchSteps = 10;
     Light sun;
+
+    [Header("Phase Function")]
+    public PhaseFunction phaseFunction = PhaseFunction.HG_Draine;
 
     [Header("Ambient Lighting")]
     [Range(0.0f, 1.0f)]
@@ -382,6 +390,8 @@ public class CloudRaymarchController : MonoBehaviour
         renderCloudsCompute.SetFloat("_StepSize", stepSize);
         renderCloudsCompute.SetFloat("_WindStretchFactor", windStretchFactor);
         renderCloudsCompute.SetInt("_LightMarchSteps", lightMarchSteps);
+
+        renderCloudsCompute.SetInt("_PhaseFunction", (int)phaseFunction);
     }
 
         private RenderTexture getCloudMaskBuffer(){

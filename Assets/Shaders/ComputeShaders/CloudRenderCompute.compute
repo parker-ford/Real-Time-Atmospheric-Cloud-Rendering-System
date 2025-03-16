@@ -24,7 +24,7 @@ float3 _WindDirection;
 
 float2 _CloudMapOffset;
 
-int _DebugLighting;
+int _DebugLighting;//
 int _DebugDensity;
 int _DebugType;
 int _BufferWidth, _BufferHeight;
@@ -54,6 +54,7 @@ int _MultipleScatteringOctaves;
 float _StepSize;
 float _WindStretchFactor;
 int _LightMarchSteps;
+int _PhaseFunction;
 
 RWTexture2D<float> _CloudMask;
 RWTexture2D<float4> _CloudTex;
@@ -93,7 +94,14 @@ float draineHG(float g_HG, float g_D, float a, float w, float cosTheta){
 }
 
 float phase(float g_HG, float g_D, float a, float w, float cosTheta){
-    return draineHG(g_HG, g_D, a, w, cosTheta);
+    if(_PhaseFunction == 0){
+        return henyeyGreenstein(0, cosTheta);
+    }
+    else if(_PhaseFunction == 1){
+        return draineHG(g_HG, g_D, a, w, cosTheta);
+    }
+    
+    return 0.0;
 }
 
 float getHeightFract(float3 p){
@@ -147,19 +155,19 @@ float getBaseCloud(float4 pos, float dimensionalProfile){
     pos.xyz -= _WindDirection * smoothstep(0.0, 1.0, getHeightFract(pos)) * _WindSpeed * -1.0;
 
     //Sample Noise Textures
-    float4 lowFreqBillowyNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _BillowyNoiseTiling, pos.w);
-    float4 highFreqBillowyNoise = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos / (_BillowyNoiseTiling / 2.0), pos.w);
-    float4 wispyNoise = _WispyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _WispyNoiseTiling, pos.w);
+    float4 lowFreqBillowyNoiseSample = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _BillowyNoiseTiling, pos.w);
+    float4 highFreqBillowyNoiseSample = _BillowyNoise.SampleLevel(linear_repeat_sampler, pos / (_BillowyNoiseTiling / 2.0), pos.w);
+    float4 wispyNoiseSample = _WispyNoise.SampleLevel(linear_repeat_sampler, pos.xyz / _WispyNoiseTiling, pos.w);
 
     //Combine Noise Channels
-    float lowFreqBillowyFBM = (lowFreqNoise.b * 0.625) + (lowFreqNoise.g * 0.25) + (lowFreqNoise.a * 0.125);
-    float highFreqBillowyFBM = (highFreqNoise.r * 0.625) + (highFreqNoise.g * 0.25) + (highFreqNoise.b * 0.125);
-    float billowyNoise = lowFreqFBM * 0.60f + highFreqFBM * 0.40f;
-    float wispyNoise = (wispyNoise.b * 0.625) + (wispyNoise.g * 0.25) + (wispyNoise.r * 0.125);
+    float lowFreqBillowyFBM = (lowFreqBillowyNoiseSample.b * 0.625) + (lowFreqBillowyNoiseSample.g * 0.25) + (lowFreqBillowyNoiseSample.a * 0.125);
+    float highFreqBillowyFBM = (highFreqBillowyNoiseSample.r * 0.625) + (highFreqBillowyNoiseSample.g * 0.25) + (highFreqBillowyNoiseSample.b * 0.125);
+    float billowyNoise = lowFreqBillowyFBM * 0.60f + highFreqBillowyFBM * 0.40f;
+    float wispyNoise = (wispyNoiseSample.b * 0.625) + (wispyNoiseSample.g * 0.25) + (wispyNoiseSample.r * 0.125);
 
     //Transition between noise types
     float transition = remap_f(getHeightFract(pos.xyz), 0.0, 0.3, 0.0, 0.75);
-    float noise =  lerp(wispyNoise, billowNoise, saturate(transition));
+    float noise =  lerp(wispyNoise, billowyNoise, saturate(transition));
 
     return noise;
 }
@@ -270,11 +278,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                 if(dimensionalProfile > 0.001){
                     zeroTest = 0;
                     float density = calculateDensity(pos, dimensionalProfile);
-                    if(density <= 0.01){
+                    if(density <= 0.001){
                         totalDistance += stepSize;
                         continue;
                     }
-
 
                     float extinction = (_AbsorptionCoefficient + _ScatteringCoefficient) * density;
                     float clampedExtinction = max(extinction, 0.0001);
@@ -306,7 +313,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                         depthSaved = 1;
                     }
 
-                    if (transparency < 0.075){
+                    if (transparency < 0.001){
                         break;
                     }
                 }

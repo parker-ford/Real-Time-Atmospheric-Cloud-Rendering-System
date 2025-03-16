@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.41574505, g: 0.475551, b: 0.56087095, a: 1}
+  m_IndirectSpecularColor: {r: 0.34440956, g: 0.38782805, b: 0.45876867, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -253,15 +253,15 @@ MonoBehaviour:
   debugLighting: 1
   debugType: 1
   rayMarchSteps: 2000
-  stepSize: 100
+  stepSize: 50
   numSuperSamples: 8
   lowerRadius: 200
   upperRadius: 1200
   cloudMap: {fileID: 2800000, guid: 80e8ce667df391f40b53cd50caaddfcb, type: 2}
   cloudMapTiling: 10372
   cloudMapOffset: {x: 951.5, y: 130}
-  cloudCoverage: 0
-  cloudHeightGradient: {fileID: 2800000, guid: efa09c2084625314b949958ab9ba1ea1, type: 2}
+  cloudCoverage: -0.187
+  cloudHeightGradient: {fileID: 2800000, guid: 662cfa695f278d043a7fc01deae9b041, type: 2}
   cloudTypeMap: {fileID: 2800000, guid: 73d3e4362c3f7f74cafeaf5dc13b3471, type: 2}
   globalCloudType: 0.08
   cloudTypeMapTiling: 6971
@@ -273,38 +273,26 @@ MonoBehaviour:
   cloudDensity: 1
   scatteringCoefficient: 0.424
   absorptoinCoefficient: 0
-  shadowDensity: 0.781
-  cloudFalloff: 0.825
   windDirection: {x: 0.61, y: 1, z: -0.87}
   windSpeed: 200.4
   windStretchFactor: 0.44
-  lightIntensity: 15.4
+  lightIntensity: 4.39
   lightColor: {r: 1, g: 1, b: 0.9843137, a: 1}
-  lightStepSize: 15
-  lightMarchSteps: 5
-  powderWeight: 0
-  ambientStrength: 0.21
-  ambientColor: {r: 0.43921322, g: 0.5118971, b: 0.8867924, a: 1}
-  multipleScatteringStrength: 0
+  lightStepSize: 19.6
+  lightMarchSteps: 10
+  phaseFunction: 1
+  ambientStrength: 0.5
+  ambientColor: {r: 0.81761, g: 0.84800833, b: 1, a: 1}
   multipleScatteringOctaves: 8
-  multipleScatteringAttenuation: 0.72
-  multipleScatteringContribution: 0.69
-  multipleScatteringEccentricity: 0.53
+  multipleScatteringAttenuation: 0.59
+  multipleScatteringContribution: 0.84
+  multipleScatteringEccentricity: 1
   phaseWeight: 0.943
   hgAsymmetry: 0.59
   draineAsymmetry: 0.69
   draineAlpha: 27.11369
   depthFogDensity: 0.00005
   depthFogOffset: 0
-  exposure: 1.03
-  contrast: 1
-  linearMidPoint: 0.5
-  brightness: 0
-  saturation: 1.1
-  toneMapper: 0
-  p: 3
-  hiVal: 2
-  gamma: 1
 --- !u!1 &297802093
 GameObject:
   m_ObjectHideFlags: 0
@@ -392,13 +380,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 297802093}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7019555, y: -0.16428797, z: 0.17176741, w: 0.6713896}
+  m_LocalRotation: {x: 0.14601181, y: 0.55115336, z: -0.8155823, w: 0.09867172}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 92.55, y: -27.5, z: 0}
+  m_LocalEulerAnglesHint: {x: 111.9, y: 159.7, z: 0}
 --- !u!1 &1119271296
 GameObject:
   m_ObjectHideFlags: 0

@@ -45,14 +45,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
     float stratusA = 0.1;
-    float stratusB = 0.05;
+    float stratusB = -0.3;
     float stratusC = 0.2;
 
     float statusVal = calculateHeightGradient(stratusA, stratusB, stratusC, uv.y);
 
 
     float cumulusA = 0.15;
-    float cumulusB = 0.3;
+    float cumulusB = -0.2;
     float cumulusC = 0.9;
 
     float cumulusVal = calculateHeightGradient(cumulusA, cumulusB, cumulusC, uv.y);
